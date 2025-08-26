@@ -13,6 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
+import { HomeIcon } from "lucide-react";
 
 export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
   const { xp, level, badges, levelUpXp, isLoaded } = useGamification();
@@ -29,11 +30,11 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
         <h1 className="text-xl font-bold tracking-tighter">Code Alchemist</h1>
       </div>
 
-      <div className="flex items-center gap-4 md:gap-6">
+      <div className="flex items-center gap-2 md:gap-4">
         <div className="flex items-center gap-4">
           {isLoaded ? (
             <>
-              <div className="w-32">
+              <div className="w-32 hidden sm:block">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="flex flex-col gap-1">
@@ -72,12 +73,21 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
             </>
           ) : (
              <div className="flex items-center gap-4">
-                <Skeleton className="h-8 w-32" />
-                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-32 hidden sm:block" />
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
             </div>
           )}
         </div>
-
+        
+        <Link href="/">
+          <Button size="sm" variant="outline">
+            <HomeIcon className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Home</span>
+          </Button>
+        </Link>
         <Link href="/profile">
           <Button size="sm" variant="outline">
             Profile
