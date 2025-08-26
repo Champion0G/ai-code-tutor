@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface QuizTabProps {
   fileName: string;

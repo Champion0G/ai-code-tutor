@@ -9,7 +9,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { CodeAlchemistIcon, FolderIcon, FileIcon, ChevronRightIcon } from "lucide-react";
+import { FolderIcon, FileIcon, ChevronRightIcon } from "lucide-react";
+import { CodeAlchemistIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
