@@ -13,13 +13,13 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
-import { HomeIcon } from "lucide-react";
+import { HomeIcon, User } from "lucide-react";
 
 export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
   const { xp, level, badges, levelUpXp, isLoaded } = useGamification();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-card px-4 shrink-0">
+    <header className="flex h-16 items-center justify-between border-b bg-card px-2 md:px-4 shrink-0">
       <div className="flex items-center gap-2">
         {showSidebarTrigger && (
           <div className="lg:hidden">
@@ -27,11 +27,11 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
           </div>
         )}
         <CodeAlchemistIcon className="h-7 w-7 text-primary" />
-        <h1 className="text-xl font-bold tracking-tighter">Code Alchemist</h1>
+        <h1 className="text-xl font-bold tracking-tighter hidden sm:inline-block">Code Alchemist</h1>
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           {isLoaded ? (
             <>
               <div className="w-32 hidden sm:block">
@@ -52,7 +52,7 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 md:gap-2">
                 {badges.map((badge) => (
                   <Tooltip key={badge.name}>
                     <TooltipTrigger asChild>
@@ -82,17 +82,20 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
           )}
         </div>
         
-        <Link href="/">
-          <Button size="sm" variant="outline">
-            <HomeIcon className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Home</span>
-          </Button>
-        </Link>
-        <Link href="/profile">
-          <Button size="sm" variant="outline">
-            Profile
-          </Button>
-        </Link>
+        <div className="flex gap-1 md:gap-2">
+            <Link href="/" passHref>
+                <Button size="icon" variant="outline" className="h-8 w-8 md:h-9 md:w-auto md:px-3">
+                    <HomeIcon className="h-4 w-4" />
+                    <span className="hidden md:inline md:ml-2">Home</span>
+                </Button>
+            </Link>
+             <Link href="/profile" passHref>
+                <Button size="icon" variant="outline" className="h-8 w-8 md:h-9 md:w-auto md:px-3">
+                    <User className="h-4 w-4" />
+                    <span className="hidden md:inline md:ml-2">Profile</span>
+                </Button>
+            </Link>
+        </div>
       </div>
     </header>
   );

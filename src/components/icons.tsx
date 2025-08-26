@@ -1,5 +1,5 @@
 import type { SVGProps } from "react";
-import { Award, BrainCircuit, Star, Zap } from "lucide-react";
+import { Award, BrainCircuit, Star, Zap, User } from "lucide-react";
 import type { BadgeIconType } from "@/contexts/gamification-context";
 
 export const CodeAlchemistIcon = (props: SVGProps<SVGSVGElement>) => (
