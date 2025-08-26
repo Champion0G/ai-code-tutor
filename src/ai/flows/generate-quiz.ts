@@ -42,6 +42,8 @@ const prompt = ai.definePrompt({
 Create a quiz with a title and a few questions to test the user's understanding of the file.
 Each question should have 4 options, and one correct answer.
 
+IMPORTANT: Each time you generate a quiz for the same file, try to create a different set of questions to keep it fresh and challenging.
+
 File Name: {{{fileName}}}
 File Content:
 \`\`\`
