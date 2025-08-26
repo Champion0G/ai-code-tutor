@@ -1,3 +1,4 @@
+
 "use client";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -11,15 +12,17 @@ import {
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 
-export function Header() {
+export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
   const { xp, level, badges, levelUpXp } = useGamification();
 
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 shrink-0">
       <div className="flex items-center gap-2">
-        <div className="lg:hidden">
-          <SidebarTrigger />
-        </div>
+        {showSidebarTrigger && (
+          <div className="lg:hidden">
+            <SidebarTrigger />
+          </div>
+        )}
         <CodeAlchemistIcon className="h-7 w-7 text-primary" />
         <h1 className="text-xl font-bold tracking-tighter">Code Alchemist</h1>
       </div>

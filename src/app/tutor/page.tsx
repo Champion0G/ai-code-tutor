@@ -41,9 +41,15 @@ function TutorView() {
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header />
+      <Header showSidebarTrigger={false} />
       <main className="flex-1 overflow-auto p-4 lg:p-8">
         <div className="max-w-4xl mx-auto">
+          <Link href="/" className='mb-4 inline-block'>
+              <Button variant="outline" size="sm">
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Back to Mode Selection
+              </Button>
+          </Link>
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>What would you like to learn?</CardTitle>
