@@ -1,15 +1,17 @@
+
 "use client";
 
 import type { FileNode } from "@/lib/mock-data";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   SidebarHeader,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { FolderIcon, FileIcon, ChevronRightIcon } from "lucide-react";
+import { FolderIcon, FileIcon, ChevronRightIcon, Upload } from "lucide-react";
 import { CodeAlchemistIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,7 @@ interface FileExplorerProps {
   files: FileNode[];
   onFileSelect: (file: FileNode) => void;
   activeFile: FileNode | null;
+  onFileUpload: (file: { name: string; content: string }) => void;
 }
 
 const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNode, onFileSelect: (file: FileNode) => void, activeFile: FileNode | null, level: number }) => {
@@ -27,7 +30,9 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
     if (node.type === 'folder') {
       setIsOpen(!isOpen);
     }
-    onFileSelect(node);
+    if (node.type === 'file') {
+        onFileSelect(node);
+    }
   };
 
   const isFolder = node.type === 'folder';
@@ -81,7 +86,29 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
   );
 };
 
-export function FileExplorer({ files, onFileSelect, activeFile }: FileExplorerProps) {
+export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload }: FileExplorerProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        onFileUpload({ name: file.name, content });
+      };
+      reader.readAsText(file);
+    }
+     // Reset file input to allow uploading the same file again
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <>
       <SidebarHeader className="border-b">
@@ -90,18 +117,32 @@ export function FileExplorer({ files, onFileSelect, activeFile }: FileExplorerPr
           <h2 className="font-semibold text-lg">File Explorer</h2>
         </div>
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarMenu>
-          {files.map((node) => (
-            <ExplorerNode
-              key={node.path}
-              node={node}
-              onFileSelect={onFileSelect}
-              activeFile={activeFile}
-              level={0}
-            />
-          ))}
-        </SidebarMenu>
+      <SidebarContent className="p-2">
+        <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept=".js,.ts,.jsx,.tsx,.html,.css,.json,.md,.py,.java,.cpp,.c,.go,.rs"
+        />
+        <Button variant="outline" className="w-full" onClick={handleUploadClick}>
+            <Upload className="mr-2 h-4 w-4" />
+            Upload File
+        </Button>
+        <SidebarSeparator className="my-2" />
+        <div className="flex-1 overflow-auto">
+            <SidebarMenu>
+            {files.map((node) => (
+                <ExplorerNode
+                key={node.path}
+                node={node}
+                onFileSelect={onFileSelect}
+                activeFile={activeFile}
+                level={0}
+                />
+            ))}
+            </SidebarMenu>
+        </div>
       </SidebarContent>
     </>
   );
