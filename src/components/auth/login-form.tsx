@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CodeAlchemistIcon } from "../icons";
 import { Loader2 } from "lucide-react";
+import { useGamification } from "@/contexts/gamification-context";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -35,6 +36,7 @@ const formSchema = z.object({
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const { loadInitialData } = useGamification();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -62,8 +64,11 @@ export function LoginForm() {
       
       toast({
         title: "Login Successful",
-        description: "Welcome back!",
+        description: `Welcome back, ${data.user.name}!`,
       });
+
+      // Load user data into context
+      loadInitialData(data.user);
 
       // Redirect to the explainer page after successful login
       router.push('/explainer');
