@@ -24,6 +24,8 @@ const KeyConceptSchema = z.object({
     .describe(
       'A detailed but easy-to-understand explanation of the concept.'
     ),
+  codeExample: z.string().optional().describe('A concise and relevant code example to illustrate the concept.'),
+  codeExplanation: z.string().optional().describe('A brief explanation of the code example.'),
 });
 
 const GenerateLessonOutputSchema = z.object({
@@ -57,7 +59,11 @@ The user wants to learn about: {{{topic}}}
 Please generate a lesson with the following structure:
 1.  A clear title for the lesson.
 2.  A brief introduction that explains what the topic is and why it's important.
-3.  A list of 2-4 key concepts. For each concept, provide a title and a simple explanation.
+3.  A list of 2-4 key concepts. For each concept, provide:
+    a. A title.
+    b. A simple explanation.
+    c. A relevant code example to demonstrate the concept.
+    d. A brief explanation of the code example.
 4.  A concluding summary that recaps the main points.
 
 Keep the language simple and accessible, assuming the user might be a beginner. Avoid overly technical jargon where possible.

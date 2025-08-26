@@ -108,18 +108,20 @@ function TutorView() {
           {error && <div className="text-destructive text-center py-10">{error}</div>}
 
           {isLoadingLesson && (
-            <div className="space-y-6">
-                <Skeleton className="h-8 w-1/2" />
-                <Skeleton className="h-20 w-full" />
-                <div className="space-y-4">
-                    <Skeleton className="h-6 w-1/4" />
-                    <Skeleton className="h-16 w-full" />
+            <Card className="p-6">
+                <div className="space-y-6">
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-20 w-full" />
+                    <div className="space-y-4">
+                        <Skeleton className="h-6 w-1/4" />
+                        <Skeleton className="h-16 w-full" />
+                    </div>
+                    <div className="space-y-4">
+                        <Skeleton className="h-6 w-1/4" />
+                        <Skeleton className="h-16 w-full" />
+                    </div>
                 </div>
-                 <div className="space-y-4">
-                    <Skeleton className="h-6 w-1/4" />
-                    <Skeleton className="h-16 w-full" />
-                </div>
-            </div>
+            </Card>
           )}
 
           {lesson && (
@@ -132,6 +134,12 @@ function TutorView() {
                             <div key={index}>
                                 <h2>{concept.title}</h2>
                                 <p>{concept.explanation}</p>
+                                {concept.codeExample && (
+                                    <div className="my-4">
+                                        <pre className="p-4 text-sm font-code bg-muted rounded-md overflow-x-auto"><code>{concept.codeExample}</code></pre>
+                                        {concept.codeExplanation && <p className="text-sm italic text-muted-foreground mt-2">{concept.codeExplanation}</p>}
+                                    </div>
+                                )}
                             </div>
                         ))}
                         <h2>Conclusion</h2>
