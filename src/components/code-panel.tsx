@@ -23,7 +23,7 @@ export function CodePanel({ file, onMouseUp }: CodePanelProps) {
             className="p-4 text-sm font-code"
             onMouseUp={onMouseUp}
           >
-            <code className="whitespace-nowrap">{file?.content || "No file selected."}</code>
+            <code>{file?.content || "No file selected."}</code>
           </pre>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
