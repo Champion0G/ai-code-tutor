@@ -1,10 +1,7 @@
-import { MainLayout } from '@/components/main-layout';
-import { GamificationProvider } from '@/contexts/gamification-context';
+import { ModeSelection } from '@/components/mode-selection';
 
 export default function Home() {
   return (
-    <GamificationProvider>
-      <MainLayout />
-    </GamificationProvider>
+    <ModeSelection />
   );
 }
