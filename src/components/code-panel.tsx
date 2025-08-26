@@ -1,9 +1,8 @@
-
 "use client";
 
 import type { FileNode } from "@/lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { FileIcon } from "lucide-react";
 
 interface CodePanelProps {
@@ -19,13 +18,14 @@ export function CodePanel({ file, onMouseUp }: CodePanelProps) {
         <CardTitle className="text-lg">{file?.name || "Select a file"}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-full">
+        <ScrollArea className="h-full w-full">
           <pre
             className="p-4 text-sm font-code"
             onMouseUp={onMouseUp}
           >
-            <code>{file?.content || "No file selected."}</code>
+            <code className="whitespace-nowrap">{file?.content || "No file selected."}</code>
           </pre>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </CardContent>
     </Card>
