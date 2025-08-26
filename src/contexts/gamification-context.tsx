@@ -1,3 +1,4 @@
+
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useCallback } from "react";
@@ -23,8 +24,11 @@ interface GamificationContextType {
   level: number;
   levelUpXp: number;
   badges: Badge[];
+  name: string; // Add name
+  email: string; // Add email
   addXp: (amount: number) => void;
   addBadge: (name: BadgeName) => void;
+  // We can add a function to set user info later
 }
 
 const GamificationContext = createContext<GamificationContextType | undefined>(
@@ -34,6 +38,10 @@ const GamificationContext = createContext<GamificationContextType | undefined>(
 const LEVEL_XP_BASE = 100;
 
 export const GamificationProvider = ({ children }: { children: ReactNode }) => {
+  // Mock user data for now
+  const [name, setName] = useState("Alex Doe");
+  const [email, setEmail] = useState("alex.doe@example.com");
+
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
   const [levelUpXp, setLevelUpXp] = useState(LEVEL_XP_BASE);
@@ -71,7 +79,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <GamificationContext.Provider
-      value={{ xp, level, levelUpXp, badges, addXp, addBadge }}
+      value={{ xp, level, levelUpXp, badges, name, email, addXp, addBadge }}
     >
       {children}
     </GamificationContext.Provider>

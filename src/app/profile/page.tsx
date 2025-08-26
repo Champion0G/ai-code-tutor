@@ -1,27 +1,16 @@
 
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/header';
 import { BadgeIcon } from '@/components/icons';
-import type { Badge } from '@/contexts/gamification-context';
 import { Progress } from '@/components/ui/progress';
+import { useGamification } from '@/contexts/gamification-context';
 
 function ProfileView() {
-    // This will be replaced with real user data later
-    const user = {
-        name: "Alex Doe",
-        email: "alex.doe@example.com",
-        level: 5,
-        xp: 350,
-        levelUpXp: 500,
-        badges: [
-            { name: "First_Explanation", description: "Used 'Explain' for the first time.", icon: "Star" },
-            { name: "Code_Optimizer", description: "Used 'Improve' feature.", icon: "Zap" },
-            { name: "Archivist", description: "Summarized a file.", icon: "BrainCircuit" },
-            { name: "Quiz_Whiz", description: "Answered a quiz question correctly.", icon: "Award" },
-        ] as Badge[]
-    }
+    const { name, email, level, xp, levelUpXp, badges } = useGamification();
 
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
@@ -37,19 +26,19 @@ function ProfileView() {
                             <div className="space-y-4">
                                 <h3 className="font-semibold text-xl border-b pb-2">Account Information</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                    <p><strong>Name:</strong> {user.name}</p>
-                                    <p><strong>Email:</strong> {user.email}</p>
+                                    <p><strong>Name:</strong> {name}</p>
+                                    <p><strong>Email:</strong> {email}</p>
                                 </div>
                             </div>
                              <div className="space-y-4">
                                 <h3 className="font-semibold text-xl border-b pb-2">Learning Stats</h3>
                                 <div className="space-y-2 text-sm">
-                                    <p><strong>Level:</strong> {user.level}</p>
+                                    <p><strong>Level:</strong> {level}</p>
                                     <div>
                                       <p className="mb-1"><strong>Experience:</strong></p>
                                       <div className='flex items-center gap-2'>
-                                        <Progress value={(user.xp / user.levelUpXp) * 100} className="h-3 w-full" />
-                                        <span className='text-xs font-mono whitespace-nowrap'>{user.xp} / {user.levelUpXp} XP</span>
+                                        <Progress value={(xp / levelUpXp) * 100} className="h-3 w-full" />
+                                        <span className='text-xs font-mono whitespace-nowrap'>{xp} / {levelUpXp} XP</span>
                                       </div>
                                     </div>
                                 </div>
@@ -57,7 +46,7 @@ function ProfileView() {
                              <div className="space-y-4">
                                 <h3 className="font-semibold text-xl border-b pb-2">Achievements</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                     {user.badges.length > 0 ? user.badges.map(badge => (
+                                     {badges.length > 0 ? badges.map(badge => (
                                         <div key={badge.name} className="flex flex-col items-center text-center gap-2 p-4 border rounded-lg bg-muted/50 aspect-square justify-center">
                                            <BadgeIcon type={badge.icon} className="h-8 w-8 text-accent" />
                                            <p className="font-semibold text-sm">{badge.name.replace(/_/g, ' ')}</p>
