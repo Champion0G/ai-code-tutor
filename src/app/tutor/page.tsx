@@ -9,8 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BookOpen, ChevronLeft, Loader2, WandSparkles } from 'lucide-react';
 import { generateLesson, GenerateLessonOutput } from '@/ai/flows/generate-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
+import { GamificationProvider } from '@/contexts/gamification-context';
+import { Header } from '@/components/header';
 
-export default function TutorPage() {
+function TutorView() {
   const [topic, setTopic] = useState('');
   const [lesson, setLesson] = useState<GenerateLessonOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,19 +40,8 @@ export default function TutorPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-       <header className="flex h-16 items-center justify-between border-b bg-card px-4 shrink-0">
-        <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" asChild>
-                <Link href="/">
-                    <ChevronLeft className="h-4 w-4" />
-                </Link>
-            </Button>
-            <BookOpen className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold tracking-tighter">Topic Tutor</h1>
-        </div>
-      </header>
-
+    <div className="flex flex-col h-screen bg-background text-foreground">
+      <Header />
       <main className="flex-1 overflow-auto p-4 lg:p-8">
         <div className="max-w-4xl mx-auto">
           <Card className="mb-8">
@@ -109,4 +100,13 @@ export default function TutorPage() {
       </main>
     </div>
   );
+}
+
+
+export default function TutorPage() {
+  return (
+    <GamificationProvider>
+      <TutorView />
+    </GamificationProvider>
+  )
 }

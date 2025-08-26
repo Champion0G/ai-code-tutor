@@ -63,7 +63,7 @@ export function ModeSelection() {
           </CardContent>
           <CardFooter>
             <Link href="/tutor" className="w-full">
-              <Button variant="secondary" className="w-full">Coming Soon</Button>
+              <Button className="w-full">Start Learning</Button>
             </Link>
           </CardFooter>
         </Card>
