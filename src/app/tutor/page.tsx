@@ -22,6 +22,7 @@ function TutorView() {
   const [isLoadingLesson, setIsLoadingLesson] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quizKey, setQuizKey] = useState(0);
 
   const { addXp, addBadge } = useGamification();
 
@@ -58,6 +59,7 @@ function TutorView() {
           const lessonContent = `Title: ${lesson.title}\nIntroduction: ${lesson.introduction}\n${lesson.keyConcepts.map(c => `Concept: ${c.title}\n${c.explanation}`).join('\n\n')}\nConclusion: ${lesson.conclusion}`;
           const result = await generateQuiz({ fileContent: lessonContent, fileName: lesson.title });
           setQuiz(result);
+          setQuizKey(prev => prev + 1); // Force re-render of QuizView
       } catch(e) {
           setError('Failed to generate quiz. Please try again.');
           console.error(e);
@@ -138,7 +140,7 @@ function TutorView() {
                 <Separator className='my-8' />
 
                 {quiz ? (
-                     <QuizView quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
+                     <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
                 ) : (
                     <div className='text-center'>
                          <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">

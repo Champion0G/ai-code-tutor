@@ -6,7 +6,7 @@ import type { GenerateQuizOutput } from "@/ai/flows/generate-quiz";
 import { QuizView } from "@/components/quiz-view";
 import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 
 interface QuizTabProps {
   fileName: string;
@@ -16,16 +16,9 @@ interface QuizTabProps {
 
 export function QuizTab({ fileName, fileContent, onCorrectAnswer }: QuizTabProps) {
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [key, setKey] = useState(fileName); // Used to re-mount the quiz view when file changes
-
-  useEffect(() => {
-    if (fileContent) {
-      handleGenerateQuiz();
-      setKey(fileName);
-    }
-  }, [fileContent, fileName]);
+  const [key, setKey] = useState(0); // Used to re-mount the quiz view
 
   const handleGenerateQuiz = async () => {
     setIsLoading(true);
@@ -35,6 +28,7 @@ export function QuizTab({ fileName, fileContent, onCorrectAnswer }: QuizTabProps
     try {
       const result = await generateQuiz({ fileContent, fileName });
       setQuiz(result);
+      setKey(k => k + 1); // Force re-mount of QuizView
     } catch (e) {
       setError("Failed to generate quiz. Please try again.");
       console.error(e);
@@ -42,6 +36,14 @@ export function QuizTab({ fileName, fileContent, onCorrectAnswer }: QuizTabProps
       setIsLoading(false);
     }
   };
+  
+  useEffect(() => {
+    if (fileContent) {
+      handleGenerateQuiz();
+    }
+    // We only want to run this when the file actually changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileContent, fileName]);
 
   if (isLoading) {
     return (
@@ -68,9 +70,15 @@ export function QuizTab({ fileName, fileContent, onCorrectAnswer }: QuizTabProps
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold">{quiz.title}</h3>
-        <p className="text-sm text-muted-foreground">Test your knowledge about {fileName}.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold">{quiz.title}</h3>
+          <p className="text-sm text-muted-foreground">Test your knowledge about {fileName}.</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleGenerateQuiz} disabled={isLoading}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            New Quiz
+        </Button>
       </div>
       <div className="flex-1 overflow-auto -mx-4 px-4">
           <QuizView
