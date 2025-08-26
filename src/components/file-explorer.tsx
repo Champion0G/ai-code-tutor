@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { FolderIcon, FileIcon, ChevronRightIcon, Upload } from "lucide-react";
+import { FolderIcon, FileIcon, ChevronRightIcon, Upload, FolderUp } from "lucide-react";
 import { CodeAlchemistIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ interface FileExplorerProps {
   files: FileNode[];
   onFileSelect: (file: FileNode) => void;
   activeFile: FileNode | null;
+  onFileUpload: (file: File) => void;
   onFolderUpload: (files: File[]) => void;
 }
 
@@ -52,7 +53,7 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
               />
             </Button>
           ) : (
-            <div className="w-6" /> 
+            <div className="w-6" />
           )}
           <SidebarMenuButton
             onClick={handleNodeClick}
@@ -86,23 +87,35 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
   );
 };
 
-export function FileExplorer({ files, onFileSelect, activeFile, onFolderUpload }: FileExplorerProps) {
+export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, onFolderUpload }: FileExplorerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = event.target.files;
-    if (fileList) {
+    if (fileList && fileList.length > 0) {
+      if (fileList.length === 1 && !fileList[0].webkitRelativePath) {
+        onFileUpload(fileList[0]);
+      } else {
         onFolderUpload(Array.from(fileList));
+      }
     }
-     // Reset file input to allow uploading the same folder again
-    if(fileInputRef.current) {
-        fileInputRef.current.value = '';
+    // Reset file input to allow uploading the same file/folder again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (folderInputRef.current) {
+        folderInputRef.current.value = '';
     }
   };
 
-  const handleUploadClick = () => {
+  const handleUploadFileClick = () => {
     fileInputRef.current?.click();
   };
+
+  const handleUploadFolderClick = () => {
+    folderInputRef.current?.click();
+  }
 
   return (
     <>
@@ -118,16 +131,28 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFolderUpload }
             ref={fileInputRef}
             onChange={handleFileChange}
             className="hidden"
+        />
+         <input
+            type="file"
+            ref={folderInputRef}
+            onChange={handleFileChange}
+            className="hidden"
             // @ts-expect-error - webkitdirectory is a non-standard attribute
             webkitdirectory=""
             mozdirectory=""
             directory=""
             multiple
         />
-        <Button variant="outline" className="w-full" onClick={handleUploadClick}>
-            <Upload className="mr-2 h-4 w-4" />
-            Upload Folder
-        </Button>
+        <div className="flex gap-2">
+            <Button variant="outline" className="w-full" onClick={handleUploadFileClick}>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload File
+            </Button>
+            <Button variant="outline" className="w-full" onClick={handleUploadFolderClick}>
+                <FolderUp className="mr-2 h-4 w-4" />
+                Upload Folder
+            </Button>
+        </div>
         <SidebarSeparator className="my-2" />
         <div className="flex-1 overflow-auto">
             <SidebarMenu>

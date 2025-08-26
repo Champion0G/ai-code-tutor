@@ -18,77 +18,67 @@ import { AiPanel } from "@/components/ai-panel";
 
 // Helper function to build a file tree from a flat list of files
 function buildFileTree(files: File[]): Promise<FileNode[]> {
-  return new Promise((resolve) => {
-    const filePromises = files.map(file => {
-      return new Promise<{ path: string, content: string }>(resolveFile => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          resolveFile({
-            path: file.webkitRelativePath,
-            content: e.target?.result as string,
-          });
-        };
-        reader.onerror = () => {
-          resolveFile({ path: file.webkitRelativePath, content: "Error reading file" });
-        }
-        reader.readAsText(file);
-      });
+  const filePromises = files.map(file => {
+    return new Promise<{ path: string; content: string }>(resolveFile => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolveFile({
+          path: file.webkitRelativePath,
+          content: e.target?.result as string,
+        });
+      };
+      reader.onerror = () => {
+        resolveFile({ path: file.webkitRelativePath, content: "Error reading file" });
+      }
+      reader.readAsText(file);
     });
+  });
 
-    Promise.all(filePromises).then(fileData => {
-      const root: { [key: string]: FileNode } = {};
+  return Promise.all(filePromises).then(fileData => {
+    const root: FileNode = { name: 'root', path: '', type: 'folder', children: [] };
+    
+    fileData.forEach(({ path, content }) => {
+      const parts = path.split('/').filter(p => p); // remove empty strings
+      let currentLevel = root;
+      
+      parts.forEach((part, index) => {
+        const isFile = index === parts.length - 1;
+        let existingNode = currentLevel.children?.find(node => node.name === part);
 
-      fileData.forEach(({ path, content }) => {
-        const parts = path.split('/');
-        let currentLevel = root;
-        let currentPath = '';
-
-        parts.forEach((part, index) => {
-          if (!part) return;
-
-          const isRoot = currentPath === '';
-          currentPath = isRoot ? part : `${currentPath}/${part}`;
-          const isFile = index === parts.length - 1;
-
-          if (!currentLevel[part]) {
-            currentLevel[part] = {
-              name: part,
-              type: isFile ? 'file' : 'folder',
-              path: currentPath,
-              children: isFile ? undefined : [],
-            };
+        if (existingNode) {
+          if (!isFile) {
+            currentLevel = existingNode;
           }
+        } else {
+          const newNode: FileNode = {
+            name: part,
+            path: parts.slice(0, index + 1).join('/'),
+            type: isFile ? 'file' : 'folder',
+            children: isFile ? undefined : [],
+          };
 
           if (isFile) {
-            currentLevel[part].content = content;
-          } else {
-            // This is the crucial fix: ensure we traverse into the children array as an object for lookups
-            const childrenAsObject = currentLevel[part].children!.reduce((acc, child) => {
-              acc[child.name] = child;
-              return acc;
-            }, {} as { [key: string]: FileNode });
-            currentLevel = childrenAsObject;
+            newNode.content = content;
           }
-        });
+
+          if (!currentLevel.children) {
+              currentLevel.children = [];
+          }
+          currentLevel.children.push(newNode);
+
+          if (!isFile) {
+            currentLevel = newNode;
+          }
+        }
       });
-
-      // This transformation logic is also flawed. It needs to correctly convert the object back to an array.
-      const transform = (level: { [key: string]: FileNode }): FileNode[] => {
-        return Object.values(level).map(node => {
-          if (node.type === 'folder' && node.children) {
-              const childrenAsObject = node.children.reduce((acc, child) => {
-                  acc[child.name] = child;
-                  return acc;
-              }, {} as {[key: string]: FileNode});
-              node.children = transform(childrenAsObject)
-          }
-          return node;
-        })
-      }
-
-      // Instead of the complex transform, let's just convert the root object to an array
-      resolve(Object.values(root));
     });
+
+    // We only care about the children of the first directory level
+    if (root.children && root.children.length > 0 && root.children[0].type === 'folder' && root.children[0].children) {
+      return root.children[0].children;
+    }
+    
+    return root.children || [];
   });
 }
 
@@ -130,6 +120,23 @@ export function MainLayout() {
   const handleFolderUpload = async (files: File[]) => {
     const newFileTree = await buildFileTree(files);
     setFileTree(newFileTree);
+  };
+
+  const handleFileUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const newFileNode: FileNode = {
+            name: file.name,
+            type: 'file',
+            path: file.name,
+            content: content
+        };
+        // Replace entire tree with the single file
+        setFileTree([newFileNode]);
+        setActiveFile(newFileNode);
+    }
+    reader.readAsText(file);
   }
 
   return (
@@ -139,6 +146,7 @@ export function MainLayout() {
             files={fileTree} 
             onFileSelect={handleFileSelect} 
             activeFile={activeFile}
+            onFileUpload={handleFileUpload}
             onFolderUpload={handleFolderUpload}
         />
       </Sidebar>
