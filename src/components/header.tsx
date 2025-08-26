@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
+import Link from "next/link";
 
 export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
   const { xp, level, badges, levelUpXp } = useGamification();
@@ -67,9 +68,11 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
           </div>
         </div>
 
-        <Button size="sm" variant="outline">
-          Profile
-        </Button>
+        <Link href="/profile">
+          <Button size="sm" variant="outline">
+            Profile
+          </Button>
+        </Link>
       </div>
     </header>
   );
