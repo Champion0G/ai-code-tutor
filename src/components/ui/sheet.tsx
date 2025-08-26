@@ -69,6 +69,10 @@ const SheetContent = React.forwardRef<
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>
+       <SheetPrimitive.Title className="sr-only">Sidebar</SheetPrimitive.Title>
+       <SheetPrimitive.Description className="sr-only">
+          Main navigation and file explorer
+       </SheetPrimitive.Description>
     </SheetPrimitive.Content>
   </SheetPortal>
 ))
