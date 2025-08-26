@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const client = await clientPromise;
-    const db = client.db();
+    const db = client.db("ai-code-tutor");
 
     const user = await db.collection('users').findOne({ email });
 
