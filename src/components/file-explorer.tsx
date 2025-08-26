@@ -26,6 +26,7 @@ interface FileExplorerProps {
   activeFile: FileNode | null;
   onFileUpload: (file: File) => void;
   onFolderUpload: (files: File[]) => void;
+  onRepoImport: (files: FileNode[]) => void;
 }
 
 const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNode, onFileSelect: (file: FileNode) => void, activeFile: FileNode | null, level: number }) => {
@@ -91,7 +92,7 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
   );
 };
 
-export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, onFolderUpload }: FileExplorerProps) {
+export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, onFolderUpload, onRepoImport }: FileExplorerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [repoUrl, setRepoUrl] = useState("");
@@ -137,21 +138,21 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
     setIsImporting(true);
     try {
         const result = await importGithubRepo({ repoUrl });
-        // TODO: Process the result and update the file tree
-        console.log(result);
-         toast({
-            title: 'Import Started',
-            description: 'The repository is being imported. This might take a moment.'
+        onRepoImport(result.fileTree);
+        toast({
+            title: 'Import Successful',
+            description: 'The repository has been loaded into the file explorer.'
         });
     } catch (error) {
         console.error(error);
         toast({
             variant: 'destructive',
             title: 'Import Failed',
-            description: 'Could not import the repository. Please check the URL and try again.'
+            description: 'Could not import the repository. Please check the URL and try again. The repository must be public.'
         });
     } finally {
         setIsImporting(false);
+        setRepoUrl("");
     }
   };
 

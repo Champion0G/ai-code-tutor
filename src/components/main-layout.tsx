@@ -38,44 +38,37 @@ function buildFileTree(files: File[]): Promise<FileNode[]> {
     const root: FileNode = { name: 'root', path: '', type: 'folder', children: [] };
     
     fileData.forEach(({ path, content }) => {
-      const parts = path.split('/').filter(p => p); // remove empty strings
-      let currentLevel = root;
-      
+      const parts = path.split('/').filter(p => p);
+      let currentLevel = root.children!;
+      let currentPath = '';
+
       parts.forEach((part, index) => {
-        const isFile = index === parts.length - 1;
-        let existingNode = currentLevel.children?.find(node => node.name === part);
+          currentPath = currentPath ? `${currentPath}/${part}` : part;
+          const isFile = index === parts.length - 1;
+          let node = currentLevel.find(child => child.name === part && child.type === (isFile ? 'file' : 'folder'));
 
-        if (existingNode) {
-          if (!isFile) {
-            currentLevel = existingNode;
+          if (!node) {
+              node = {
+                  name: part,
+                  path: currentPath,
+                  type: isFile ? 'file' : 'folder',
+                  children: isFile ? undefined : [],
+              };
+              if (isFile) {
+                  node.content = content;
+              }
+              currentLevel.push(node);
           }
-        } else {
-          const newNode: FileNode = {
-            name: part,
-            path: parts.slice(0, index + 1).join('/'),
-            type: isFile ? 'file' : 'folder',
-            children: isFile ? undefined : [],
-          };
-
-          if (isFile) {
-            newNode.content = content;
+          
+          if (node.type === 'folder') {
+              currentLevel = node.children!;
           }
-
-          if (!currentLevel.children) {
-              currentLevel.children = [];
-          }
-          currentLevel.children.push(newNode);
-
-          if (!isFile) {
-            currentLevel = newNode;
-          }
-        }
       });
     });
 
-    // We only care about the children of the first directory level
-    if (root.children && root.children.length > 0 && root.children[0].type === 'folder' && root.children[0].children) {
-      return root.children[0].children;
+    // If the root is a single folder, we return its children for a cleaner tree
+    if (root.children && root.children.length === 1 && root.children[0].type === 'folder') {
+      return root.children[0].children || [];
     }
     
     return root.children || [];
@@ -105,6 +98,8 @@ export function MainLayout() {
 
   const handleFileSelect = useCallback((file: FileNode) => {
     if (file.type === "file") {
+      // NOTE: We will fetch file content here if it's missing (for GitHub imports)
+      // This is not implemented yet.
       setActiveFile(file);
       setSelectedSnippet(""); // Reset snippet on new file selection
     }
@@ -139,6 +134,10 @@ export function MainLayout() {
     reader.readAsText(file);
   }
 
+  const handleRepoImport = (newFileTree: FileNode[]) => {
+    setFileTree(newFileTree);
+  };
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -148,6 +147,7 @@ export function MainLayout() {
             activeFile={activeFile}
             onFileUpload={handleFileUpload}
             onFolderUpload={handleFolderUpload}
+            onRepoImport={handleRepoImport}
         />
       </Sidebar>
       <SidebarInset>
