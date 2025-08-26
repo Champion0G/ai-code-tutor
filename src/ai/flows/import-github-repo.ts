@@ -52,22 +52,7 @@ async function getRepoTree(owner: string, repo: string, branch: string = 'main')
     return data.tree;
 }
 
-
-async function getFileContent(url: string): Promise<string> {
-    const response = await fetch(url, {
-        headers: {
-            'Accept': 'application/vnd.github.v3.raw',
-        }
-    });
-     if (!response.ok) {
-        console.error(`Failed to fetch file content from ${url}: ${response.statusText}`);
-        return `Error: Could not load file content.`;
-    }
-    return response.text();
-}
-
-
-function buildFileTree(paths: any[], owner: string, repo: string): FileNode[] {
+function buildFileTree(paths: any[]): FileNode[] {
     const fileTree: FileNode[] = [];
     const nodeMap: { [path: string]: FileNode } = {};
 
@@ -81,32 +66,30 @@ function buildFileTree(paths: any[], owner: string, repo: string): FileNode[] {
 
         for (let i = 0; i < pathParts.length; i++) {
             const part = pathParts[i];
+            const parentPath = currentPath;
             currentPath = i === 0 ? part : `${currentPath}/${part}`;
             
             if (!nodeMap[currentPath]) {
                 const isFile = item.type === 'blob' && i === pathParts.length - 1;
                 const node: FileNode = {
                     name: part,
-                    path: currentPath,
+                    // For files, we store the raw GitHub API download URL in the path.
+                    // This will be used to fetch the content on demand.
+                    path: isFile ? item.url : currentPath,
                     type: isFile ? 'file' : 'folder',
                     children: isFile ? undefined : [],
                 };
 
-                if (isFile) {
-                    // This is a simplified approach. For large repos, fetching all files at once
-                    // is not ideal. But for this prototype, it's acceptable.
-                    // We are not fetching content here to avoid hitting rate limits.
-                    // Content will be fetched on demand when a file is selected.
-                    // However, our current structure doesn't support that easily.
-                    // For now, we will leave content empty.
-                }
-
+                // No content fetched here to avoid hitting rate limits.
+                // Content will be fetched on demand when a file is selected.
+                
                 nodeMap[currentPath] = node;
-                parentChildren.push(node);
-            }
-            
-            if (nodeMap[currentPath].type === 'folder') {
-                 parentChildren = nodeMap[currentPath].children!;
+
+                if (parentPath) {
+                    nodeMap[parentPath].children!.push(node);
+                } else {
+                    fileTree.push(node);
+                }
             }
         }
     }
@@ -148,20 +131,7 @@ const importGithubRepoFlow = ai.defineFlow(
         !item.path.endsWith('.svg')
     );
 
-    const fileTree = buildFileTree(filteredTree, owner, repo);
-
-    // This is disabled for now to prevent excessive API calls.
-    // The content can be fetched when a file is selected in the UI.
-    /*
-    for (const item of filteredTree) {
-        if (item.type === 'blob') {
-            const node = findNodeByPath(fileTree, item.path);
-            if (node) {
-                node.content = await getFileContent(item.url);
-            }
-        }
-    }
-    */
+    const fileTree = buildFileTree(filteredTree);
     
     return { fileTree };
   }

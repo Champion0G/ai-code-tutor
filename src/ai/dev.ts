@@ -8,3 +8,4 @@ import '@/ai/flows/summarize-file-and-qa.ts';
 import '@/ai/flows/generate-quiz.ts';
 import '@/ai/flows/generate-lesson.ts';
 import '@/ai/flows/import-github-repo.ts';
+import '@/ai/flows/get-file-content.ts';
