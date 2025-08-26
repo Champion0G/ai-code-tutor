@@ -35,7 +35,7 @@ export function AiPanel({
     <Card className="h-full max-h-[calc(100vh-8rem)]">
       <CardContent className="p-4 h-full">
         <Tabs defaultValue="explain" className="flex flex-col h-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
             <TabsTrigger value="explain">Explain</TabsTrigger>
             <TabsTrigger value="improve">Improve</TabsTrigger>
             <TabsTrigger value="summary">Summary</TabsTrigger>
