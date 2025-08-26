@@ -8,6 +8,7 @@ import { Header } from '@/components/header';
 import { BadgeIcon } from '@/components/icons';
 import { Progress } from '@/components/ui/progress';
 import { useGamification } from '@/contexts/gamification-context';
+import { ChevronLeft } from 'lucide-react';
 
 function ProfileView() {
     const { name, email, level, xp, levelUpXp, badges } = useGamification();
@@ -15,14 +16,20 @@ function ProfileView() {
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
             <Header showSidebarTrigger={false} />
-            <main className="flex-1 overflow-auto p-4 lg:p-8">
-                <div className="max-w-4xl mx-auto">
+            <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+                <div className="max-w-4xl mx-auto space-y-8">
+                    <Link href="/" className='inline-block'>
+                        <Button variant="outline" size="sm">
+                            <ChevronLeft className="mr-2 h-4 w-4" />
+                            Back to Home
+                        </Button>
+                    </Link>
                     <Card>
                         <CardHeader>
                             <CardTitle className='text-3xl'>Your Profile</CardTitle>
                             <CardDescription>Your learning journey and achievements.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-8">
+                        <CardContent className="grid gap-8">
                             <div className="space-y-4">
                                 <h3 className="font-semibold text-xl border-b pb-2">Account Information</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -54,11 +61,6 @@ function ProfileView() {
                                         </div>
                                      )) : <p>No badges earned yet. Keep learning to unlock them!</p>}
                                 </div>
-                            </div>
-                            <div className='pt-4'>
-                                <Link href="/">
-                                    <Button variant="outline">Back to Home</Button>
-                                </Link>
                             </div>
                         </CardContent>
                     </Card>

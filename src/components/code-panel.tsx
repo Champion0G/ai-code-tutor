@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FileNode } from "@/lib/mock-data";
@@ -12,7 +13,7 @@ interface CodePanelProps {
 
 export function CodePanel({ file, onMouseUp }: CodePanelProps) {
   return (
-    <Card className="flex flex-col h-full max-h-[calc(100vh-8rem)]">
+    <Card className="flex flex-col h-full">
       <CardHeader className="flex-row items-center gap-2 space-y-0">
         <FileIcon className="h-5 w-5" />
         <CardTitle className="text-lg">{file?.name || "Select a file"}</CardTitle>

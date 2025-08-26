@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useGamification } from "@/contexts/gamification-context";
@@ -32,7 +33,7 @@ export function AiPanel({
   };
 
   return (
-    <Card className="h-full max-h-[calc(100vh-8rem)]">
+    <Card className="h-full">
       <CardContent className="p-4 h-full">
         <Tabs defaultValue="explain" className="flex flex-col h-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">

@@ -76,17 +76,17 @@ function TutorView() {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
       <Header showSidebarTrigger={false} />
-      <main className="flex-1 overflow-auto p-4 lg:p-8">
-        <div className="max-w-4xl mx-auto">
-          <Link href="/" className='mb-4 inline-block'>
+      <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <Link href="/" className='inline-block'>
               <Button variant="outline" size="sm">
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Back to Mode Selection
               </Button>
           </Link>
-          <Card className="mb-8">
+          <Card>
             <CardHeader>
-              <CardTitle>What would you like to learn?</CardTitle>
+              <CardTitle className="text-2xl">What would you like to learn?</CardTitle>
               <CardDescription>Enter a programming topic, concept, or language feature below.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -123,33 +123,35 @@ function TutorView() {
           )}
 
           {lesson && (
-            <>
-                <article className="prose prose-lg max-w-none dark:prose-invert">
-                    <h1>{lesson.title}</h1>
-                    <p className="lead">{lesson.introduction}</p>
-                    {lesson.keyConcepts.map((concept, index) => (
-                        <div key={index}>
-                            <h2>{concept.title}</h2>
-                            <p>{concept.explanation}</p>
+            <Card>
+                <CardContent className="p-6">
+                    <article className="prose prose-lg max-w-none dark:prose-invert">
+                        <h1>{lesson.title}</h1>
+                        <p className="lead">{lesson.introduction}</p>
+                        {lesson.keyConcepts.map((concept, index) => (
+                            <div key={index}>
+                                <h2>{concept.title}</h2>
+                                <p>{concept.explanation}</p>
+                            </div>
+                        ))}
+                        <h2>Conclusion</h2>
+                        <p>{lesson.conclusion}</p>
+                    </article>
+
+                    <Separator className='my-8' />
+
+                    {quiz ? (
+                         <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
+                    ) : (
+                        <div className='text-center'>
+                             <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">
+                                {isLoadingQuiz ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                {isLoadingQuiz ? 'Generating Quiz...' : 'Test Your Knowledge!'}
+                            </Button>
                         </div>
-                    ))}
-                    <h2>Conclusion</h2>
-                    <p>{lesson.conclusion}</p>
-                </article>
-
-                <Separator className='my-8' />
-
-                {quiz ? (
-                     <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
-                ) : (
-                    <div className='text-center'>
-                         <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">
-                            {isLoadingQuiz ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                            {isLoadingQuiz ? 'Generating Quiz...' : 'Test Your Knowledge!'}
-                        </Button>
-                    </div>
-                )}
-            </>
+                    )}
+                </CardContent>
+            </Card>
           )}
         </div>
       </main>
