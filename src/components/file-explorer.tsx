@@ -34,36 +34,38 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
   const isActive = activeFile?.path === node.path;
 
   return (
-    <SidebarMenuItem>
-      <div
-        className="flex items-center w-full"
-        style={{ paddingLeft: `${level * 1}rem` }}
-      >
-        {isFolder ? (
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleNodeClick}>
-            <ChevronRightIcon
-              className={cn("h-4 w-4 transition-transform", isOpen && "rotate-90")}
-            />
-          </Button>
-        ) : (
-          <div className="w-6" /> 
-        )}
-        <SidebarMenuButton
-          onClick={handleNodeClick}
-          className="flex-1 h-8 justify-start gap-2 pl-1"
-          isActive={isActive}
-          size="sm"
+    <>
+      <SidebarMenuItem>
+        <div
+          className="flex items-center w-full"
+          style={{ paddingLeft: `${level * 1}rem` }}
         >
           {isFolder ? (
-            <FolderIcon className="h-4 w-4 text-sky-500" />
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleNodeClick}>
+              <ChevronRightIcon
+                className={cn("h-4 w-4 transition-transform", isOpen && "rotate-90")}
+              />
+            </Button>
           ) : (
-            <FileIcon className="h-4 w-4 text-muted-foreground" />
+            <div className="w-6" /> 
           )}
-          <span>{node.name}</span>
-        </SidebarMenuButton>
-      </div>
+          <SidebarMenuButton
+            onClick={handleNodeClick}
+            className="flex-1 h-8 justify-start gap-2 pl-1"
+            isActive={isActive}
+            size="sm"
+          >
+            {isFolder ? (
+              <FolderIcon className="h-4 w-4 text-sky-500" />
+            ) : (
+              <FileIcon className="h-4 w-4 text-muted-foreground" />
+            )}
+            <span>{node.name}</span>
+          </SidebarMenuButton>
+        </div>
+      </SidebarMenuItem>
       {isFolder && isOpen && node.children && (
-        <div className="pl-2">
+        <ul className="pl-2">
           {node.children.map((child) => (
             <ExplorerNode
               key={child.path}
@@ -73,9 +75,9 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
               level={level + 1}
             />
           ))}
-        </div>
+        </ul>
       )}
-    </SidebarMenuItem>
+    </>
   );
 };
 
