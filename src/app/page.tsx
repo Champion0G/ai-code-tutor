@@ -1,3 +1,10 @@
+import { MainLayout } from '@/components/main-layout';
+import { GamificationProvider } from '@/contexts/gamification-context';
+
 export default function Home() {
-  return <></>;
+  return (
+    <GamificationProvider>
+      <MainLayout />
+    </GamificationProvider>
+  );
 }
