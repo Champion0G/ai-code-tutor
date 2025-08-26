@@ -75,7 +75,7 @@ export function QuizTab({ fileName, fileContent, onCorrectAnswer }: QuizTabProps
         <div className="flex flex-col h-full space-y-4">
              <div>
                 <h3 className="text-lg font-semibold"><Skeleton className="h-6 w-48" /></h3>
-                <p className="text-sm text-muted-foreground"><Skeleton className="h-4 w-64 mt-1" /></p>
+                <div className="text-sm text-muted-foreground mt-1"><Skeleton className="h-4 w-64" /></div>
             </div>
             <Card className="flex-1">
                 <CardHeader>
