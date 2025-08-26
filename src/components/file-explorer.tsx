@@ -11,10 +11,14 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { FolderIcon, FileIcon, ChevronRightIcon, Upload, FolderUp } from "lucide-react";
+import { FolderIcon, FileIcon, ChevronRightIcon, Upload, FolderUp, Github, Loader2 } from "lucide-react";
 import { CodeAlchemistIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { importGithubRepo } from "@/ai/flows/import-github-repo";
+
 
 interface FileExplorerProps {
   files: FileNode[];
@@ -90,6 +94,9 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
 export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, onFolderUpload }: FileExplorerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+  const [repoUrl, setRepoUrl] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = event.target.files;
@@ -116,6 +123,38 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
   const handleUploadFolderClick = () => {
     folderInputRef.current?.click();
   }
+
+  const handleImportRepo = async () => {
+    if (!repoUrl || !repoUrl.includes('github.com')) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid URL',
+            description: 'Please enter a valid GitHub repository URL.'
+        });
+        return;
+    }
+    
+    setIsImporting(true);
+    try {
+        const result = await importGithubRepo({ repoUrl });
+        // TODO: Process the result and update the file tree
+        console.log(result);
+         toast({
+            title: 'Import Started',
+            description: 'The repository is being imported. This might take a moment.'
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: 'Import Failed',
+            description: 'Could not import the repository. Please check the URL and try again.'
+        });
+    } finally {
+        setIsImporting(false);
+    }
+  };
+
 
   return (
     <>
@@ -144,14 +183,35 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
             multiple
         />
         <div className="flex flex-col gap-2">
-            <Button variant="outline" className="w-full" onClick={handleUploadFileClick}>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload File
-            </Button>
-            <Button variant="outline" className="w-full" onClick={handleUploadFolderClick}>
-                <FolderUp className="mr-2 h-4 w-4" />
-                Upload Folder
-            </Button>
+            <div className="space-y-2">
+                <p className="text-sm font-medium">Import from GitHub</p>
+                <div className="flex gap-2">
+                    <Input 
+                        placeholder="https://github.com/owner/repo"
+                        value={repoUrl}
+                        onChange={(e) => setRepoUrl(e.target.value)}
+                        disabled={isImporting}
+                    />
+                    <Button onClick={handleImportRepo} disabled={isImporting || !repoUrl} size="icon">
+                        {isImporting ? <Loader2 className="animate-spin" /> : <Github />}
+                    </Button>
+                </div>
+            </div>
+
+            <SidebarSeparator className="my-2" />
+            
+            <p className="text-sm font-medium text-center text-muted-foreground">Or upload from your computer</p>
+
+            <div className="flex flex-col gap-2">
+                <Button variant="outline" className="w-full" onClick={handleUploadFileClick}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload File
+                </Button>
+                <Button variant="outline" className="w-full" onClick={handleUploadFolderClick}>
+                    <FolderUp className="mr-2 h-4 w-4" />
+                    Upload Folder
+                </Button>
+            </div>
         </div>
         <SidebarSeparator className="my-2" />
         <div className="flex-1 overflow-auto">
