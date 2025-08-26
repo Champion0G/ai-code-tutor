@@ -21,7 +21,7 @@ export function CodePanel({ file, onMouseUp }: CodePanelProps) {
       <CardContent className="flex-1 p-0">
         <ScrollArea className="h-full">
           <pre
-            className="p-4 text-sm font-code h-full w-full"
+            className="p-4 text-sm font-code h-full w-full whitespace-pre-wrap break-all"
             onMouseUp={onMouseUp}
           >
             <code>{file?.content || "No file selected."}</code>
