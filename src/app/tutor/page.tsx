@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BookOpen, ChevronLeft, Loader2, WandSparkles } from 'lucide-react';
 import { generateLesson, GenerateLessonOutput } from '@/ai/flows/generate-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
-import { GamificationProvider } from '@/contexts/gamification-context';
 import { Header } from '@/components/header';
 
 function TutorView() {
@@ -111,8 +110,6 @@ function TutorView() {
 
 export default function TutorPage() {
   return (
-    <GamificationProvider>
-      <TutorView />
-    </GamificationProvider>
+    <TutorView />
   )
 }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { GamificationProvider } from '@/contexts/gamification-context';
 
 export const metadata: Metadata = {
   title: 'Code Alchemist',
@@ -21,9 +22,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
+        <GamificationProvider>
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
+        </GamificationProvider>
         <Toaster />
       </body>
     </html>
