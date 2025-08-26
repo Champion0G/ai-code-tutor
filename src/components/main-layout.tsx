@@ -1,11 +1,12 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { FileNode } from "@/lib/mock-data";
-import { fileTree } from "@/lib/mock-data";
+import { fileTree as initialFileTree } from "@/lib/mock-data";
 import {
   Sidebar,
+  SidebarContent,
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
@@ -13,17 +14,100 @@ import { Header } from "@/components/header";
 import { FileExplorer } from "@/components/file-explorer";
 import { CodePanel } from "@/components/code-panel";
 import { AiPanel } from "@/components/ai-panel";
-import { Button } from "./ui/button";
-import { ArrowLeft } from "lucide-react";
 
-type ViewMode = 'fileTree' | 'singleFile';
+
+// Helper function to build a file tree from a flat list of files
+function buildFileTree(files: File[]): Promise<FileNode[]> {
+    return new Promise((resolve) => {
+        const fileTree: FileNode[] = [];
+        const filePromises = files.map(file => {
+            return new Promise<{ path: string, content: string }>(resolveFile => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    resolveFile({
+                        path: file.webkitRelativePath,
+                        content: e.target?.result as string,
+                    });
+                };
+                reader.onerror = () => {
+                     resolveFile({ path: file.webkitRelativePath, content: "Error reading file" });
+                }
+                reader.readAsText(file);
+            });
+        });
+
+        Promise.all(filePromises).then(fileData => {
+            const root: { [key: string]: FileNode } = {};
+
+            fileData.forEach(({ path, content }) => {
+                const parts = path.split('/');
+                let currentLevel = root;
+                let currentPath = '';
+
+                parts.forEach((part, index) => {
+                    if (!part) return;
+
+                    currentPath = index === 0 ? part : `${currentPath}/${part}`;
+                    
+                    const isFile = index === parts.length - 1;
+
+                    if (!currentLevel[part]) {
+                        currentLevel[part] = {
+                            name: part,
+                            type: isFile ? 'file' : 'folder',
+                            path: currentPath,
+                            children: isFile ? undefined : [],
+                        };
+                    }
+                    
+                    if(isFile) {
+                        currentLevel[part].content = content;
+                    } else {
+                        currentLevel = currentLevel[part].children!.reduce((acc, child) => {
+                            acc[child.name] = child;
+                            return acc;
+                        }, {} as { [key: string]: FileNode });
+                    }
+                });
+            });
+            
+            // This is a simplified transformation, might need more robust logic for nested children
+            const transform = (level: { [key: string]: FileNode }): FileNode[] => {
+                 return Object.values(level).map(node => {
+                    if (node.type === 'folder' && node.children) {
+                        const childrenAsObject = node.children.reduce((acc, child) => {
+                            acc[child.name] = child;
+                            return acc;
+                        }, {} as {[key: string]: FileNode});
+                        node.children = transform(childrenAsObject)
+                    }
+                    return node;
+                })
+            }
+            resolve(transform(root));
+        });
+    });
+}
 
 export function MainLayout() {
-  const [activeFile, setActiveFile] = useState<FileNode | null>(
-    fileTree[0].children![0] as FileNode
-  );
+  const [fileTree, setFileTree] = useState<FileNode[]>(initialFileTree);
+  const [activeFile, setActiveFile] = useState<FileNode | null>(null);
   const [selectedSnippet, setSelectedSnippet] = useState<string>("");
-  const [viewMode, setViewMode] = useState<ViewMode>('fileTree');
+
+  useEffect(() => {
+    // Set initial active file from the file tree
+    const findFirstFile = (nodes: FileNode[]): FileNode | null => {
+        for(const node of nodes) {
+            if(node.type === 'file') return node;
+            if(node.children) {
+                const found = findFirstFile(node.children);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+    setActiveFile(findFirstFile(fileTree));
+  }, [fileTree])
 
   const handleFileSelect = useCallback((file: FileNode) => {
     if (file.type === "file") {
@@ -39,44 +123,20 @@ export function MainLayout() {
     }
   };
 
-  const handleFileUpload = (uploadedFile: { name: string; content: string }) => {
-    setActiveFile({
-        type: 'file',
-        name: uploadedFile.name,
-        path: `/${uploadedFile.name}`,
-        content: uploadedFile.content,
-    });
-    setSelectedSnippet("");
-    setViewMode('singleFile');
-  }
-
-  const handleReturnToExplorer = () => {
-      setViewMode('fileTree');
-      setActiveFile(fileTree[0].children![0] as FileNode);
+  const handleFolderUpload = async (files: File[]) => {
+    const newFileTree = await buildFileTree(files);
+    setFileTree(newFileTree);
   }
 
   return (
     <SidebarProvider>
       <Sidebar>
-        {viewMode === 'fileTree' ? (
-             <FileExplorer 
-                files={fileTree} 
-                onFileSelect={handleFileSelect} 
-                activeFile={activeFile}
-                onFileUpload={handleFileUpload}
-            />
-        ) : (
-            <div className="p-4 flex flex-col h-full">
-                <h2 className="font-semibold text-lg mb-4 text-center">File Uploaded</h2>
-                <div className="flex-1 flex items-center justify-center text-center text-muted-foreground">
-                    <p>Your uploaded file is displayed in the main panel. Use the AI tools to analyze it.</p>
-                </div>
-                 <Button onClick={handleReturnToExplorer}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to File Explorer
-                </Button>
-            </div>
-        )}
+        <FileExplorer 
+            files={fileTree} 
+            onFileSelect={handleFileSelect} 
+            activeFile={activeFile}
+            onFolderUpload={handleFolderUpload}
+        />
       </Sidebar>
       <SidebarInset>
         <div className="flex flex-col h-screen">

@@ -20,7 +20,7 @@ interface FileExplorerProps {
   files: FileNode[];
   onFileSelect: (file: FileNode) => void;
   activeFile: FileNode | null;
-  onFileUpload: (file: { name: string; content: string }) => void;
+  onFolderUpload: (files: File[]) => void;
 }
 
 const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNode, onFileSelect: (file: FileNode) => void, activeFile: FileNode | null, level: number }) => {
@@ -86,20 +86,15 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
   );
 };
 
-export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload }: FileExplorerProps) {
+export function FileExplorer({ files, onFileSelect, activeFile, onFolderUpload }: FileExplorerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        onFileUpload({ name: file.name, content });
-      };
-      reader.readAsText(file);
+    const fileList = event.target.files;
+    if (fileList) {
+        onFolderUpload(Array.from(fileList));
     }
-     // Reset file input to allow uploading the same file again
+     // Reset file input to allow uploading the same folder again
     if(fileInputRef.current) {
         fileInputRef.current.value = '';
     }
@@ -123,11 +118,15 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload }: 
             ref={fileInputRef}
             onChange={handleFileChange}
             className="hidden"
-            accept=".js,.ts,.jsx,.tsx,.html,.css,.json,.md,.py,.java,.cpp,.c,.go,.rs"
+            // @ts-expect-error - webkitdirectory is a non-standard attribute
+            webkitdirectory=""
+            mozdirectory=""
+            directory=""
+            multiple
         />
         <Button variant="outline" className="w-full" onClick={handleUploadClick}>
             <Upload className="mr-2 h-4 w-4" />
-            Upload File
+            Upload Folder
         </Button>
         <SidebarSeparator className="my-2" />
         <div className="flex-1 overflow-auto">
