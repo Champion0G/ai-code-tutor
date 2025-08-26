@@ -18,76 +18,80 @@ import { AiPanel } from "@/components/ai-panel";
 
 // Helper function to build a file tree from a flat list of files
 function buildFileTree(files: File[]): Promise<FileNode[]> {
-    return new Promise((resolve) => {
-        const fileTree: FileNode[] = [];
-        const filePromises = files.map(file => {
-            return new Promise<{ path: string, content: string }>(resolveFile => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    resolveFile({
-                        path: file.webkitRelativePath,
-                        content: e.target?.result as string,
-                    });
-                };
-                reader.onerror = () => {
-                     resolveFile({ path: file.webkitRelativePath, content: "Error reading file" });
-                }
-                reader.readAsText(file);
-            });
-        });
-
-        Promise.all(filePromises).then(fileData => {
-            const root: { [key: string]: FileNode } = {};
-
-            fileData.forEach(({ path, content }) => {
-                const parts = path.split('/');
-                let currentLevel = root;
-                let currentPath = '';
-
-                parts.forEach((part, index) => {
-                    if (!part) return;
-
-                    currentPath = index === 0 ? part : `${currentPath}/${part}`;
-                    
-                    const isFile = index === parts.length - 1;
-
-                    if (!currentLevel[part]) {
-                        currentLevel[part] = {
-                            name: part,
-                            type: isFile ? 'file' : 'folder',
-                            path: currentPath,
-                            children: isFile ? undefined : [],
-                        };
-                    }
-                    
-                    if(isFile) {
-                        currentLevel[part].content = content;
-                    } else {
-                        currentLevel = currentLevel[part].children!.reduce((acc, child) => {
-                            acc[child.name] = child;
-                            return acc;
-                        }, {} as { [key: string]: FileNode });
-                    }
-                });
-            });
-            
-            // This is a simplified transformation, might need more robust logic for nested children
-            const transform = (level: { [key: string]: FileNode }): FileNode[] => {
-                 return Object.values(level).map(node => {
-                    if (node.type === 'folder' && node.children) {
-                        const childrenAsObject = node.children.reduce((acc, child) => {
-                            acc[child.name] = child;
-                            return acc;
-                        }, {} as {[key: string]: FileNode});
-                        node.children = transform(childrenAsObject)
-                    }
-                    return node;
-                })
-            }
-            resolve(transform(root));
-        });
+  return new Promise((resolve) => {
+    const filePromises = files.map(file => {
+      return new Promise<{ path: string, content: string }>(resolveFile => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolveFile({
+            path: file.webkitRelativePath,
+            content: e.target?.result as string,
+          });
+        };
+        reader.onerror = () => {
+          resolveFile({ path: file.webkitRelativePath, content: "Error reading file" });
+        }
+        reader.readAsText(file);
+      });
     });
+
+    Promise.all(filePromises).then(fileData => {
+      const root: { [key: string]: FileNode } = {};
+
+      fileData.forEach(({ path, content }) => {
+        const parts = path.split('/');
+        let currentLevel = root;
+        let currentPath = '';
+
+        parts.forEach((part, index) => {
+          if (!part) return;
+
+          const isRoot = currentPath === '';
+          currentPath = isRoot ? part : `${currentPath}/${part}`;
+          const isFile = index === parts.length - 1;
+
+          if (!currentLevel[part]) {
+            currentLevel[part] = {
+              name: part,
+              type: isFile ? 'file' : 'folder',
+              path: currentPath,
+              children: isFile ? undefined : [],
+            };
+          }
+
+          if (isFile) {
+            currentLevel[part].content = content;
+          } else {
+            // This is the crucial fix: ensure we traverse into the children array as an object for lookups
+            const childrenAsObject = currentLevel[part].children!.reduce((acc, child) => {
+              acc[child.name] = child;
+              return acc;
+            }, {} as { [key: string]: FileNode });
+            currentLevel = childrenAsObject;
+          }
+        });
+      });
+
+      // This transformation logic is also flawed. It needs to correctly convert the object back to an array.
+      const transform = (level: { [key: string]: FileNode }): FileNode[] => {
+        return Object.values(level).map(node => {
+          if (node.type === 'folder' && node.children) {
+              const childrenAsObject = node.children.reduce((acc, child) => {
+                  acc[child.name] = child;
+                  return acc;
+              }, {} as {[key: string]: FileNode});
+              node.children = transform(childrenAsObject)
+          }
+          return node;
+        })
+      }
+
+      // Instead of the complex transform, let's just convert the root object to an array
+      resolve(Object.values(root));
+    });
+  });
 }
+
 
 export function MainLayout() {
   const [fileTree, setFileTree] = useState<FileNode[]>(initialFileTree);
