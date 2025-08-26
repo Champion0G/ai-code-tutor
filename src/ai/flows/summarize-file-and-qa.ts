@@ -34,19 +34,15 @@ const prompt = ai.definePrompt({
   output: {schema: SummarizeFileAndQAOutputSchema},
   prompt: `You are an AI assistant that summarizes files and answers questions about them.
 
-  First, summarize the following file content.
+  First, provide a summary for the following file content.
 
-  Then, answer the following question about the file content.
+  Then, provide an answer to the following question about the file content.
 
   File Content: {{{fileContent}}}
 
   Question: {{{question}}}
 
-  Summary:
-  {{output summary}}
-
-  Answer:
-  {{output answer}}`,
+  Populate the 'summary' and 'answer' fields in your response.`,
 });
 
 const summarizeFileAndQAFlow = ai.defineFlow(
