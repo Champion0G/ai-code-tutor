@@ -32,7 +32,7 @@ function ProfileView() {
                         <CardContent className="grid gap-8">
                             <div className="space-y-4">
                                 <h3 className="font-semibold text-xl border-b pb-2">Account Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                     <p><strong>Name:</strong> {name}</p>
                                     <p><strong>Email:</strong> {email}</p>
                                 </div>
@@ -52,7 +52,7 @@ function ProfileView() {
                             </div>
                              <div className="space-y-4">
                                 <h3 className="font-semibold text-xl border-b pb-2">Achievements</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                      {badges.length > 0 ? badges.map(badge => (
                                         <div key={badge.name} className="flex flex-col items-center text-center gap-2 p-4 border rounded-lg bg-muted/50 aspect-square justify-center">
                                            <BadgeIcon type={badge.icon} className="h-8 w-8 text-accent" />
