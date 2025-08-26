@@ -64,6 +64,7 @@ export function AiPanel({
               <TabsContent value="quiz" className="h-full m-0">
                 <QuizTab
                   fileName={fileName}
+                  fileContent={fileContent}
                   onCorrectAnswer={() => handleActionSuccess(20, "Quiz_Whiz")}
                 />
               </TabsContent>
