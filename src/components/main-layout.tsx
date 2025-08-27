@@ -113,7 +113,7 @@ export function MainLayout() {
   useEffect(() => {
     if (!activeFile && fileTree.length > 0) {
         const firstFile = findFirstFile(fileTree);
-        if (firstFile) { // This check prevents the crash
+        if (firstFile) {
             handleFileSelect(firstFile);
         }
     }
