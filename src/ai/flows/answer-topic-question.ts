@@ -15,8 +15,19 @@ const AnswerTopicQuestionInputSchema = z.object({
 });
 export type AnswerTopicQuestionInput = z.infer<typeof AnswerTopicQuestionInputSchema>;
 
+
+const AnswerSectionSchema = z.object({
+  title: z.string().describe('The title of the explanation section.'),
+  content: z.string().describe('The detailed content of this section, formatted as well-structured Markdown.'),
+  analogy: z.string().optional().describe('A relatable analogy to help understanding.'),
+});
+
+
 const AnswerTopicQuestionOutputSchema = z.object({
-  answer: z.string().describe('A clear and concise answer to the user\'s question, based on the lesson content, formatted as Markdown.'),
+  title: z.string().describe('An engaging title for the answer, e.g., "Let\'s Talk About Closures".'),
+  introduction: z.string().describe('A short, engaging introduction to the answer.'),
+  sections: z.array(AnswerSectionSchema).describe('An array of detailed explanation sections, each focusing on a specific aspect of the answer.'),
+  conclusion: z.string().describe('A concluding summary that wraps up the answer.'),
 });
 export type AnswerTopicQuestionOutput = z.infer<typeof AnswerTopicQuestionOutputSchema>;
 
@@ -33,9 +44,8 @@ const prompt = ai.definePrompt({
   model: googleAI('gemini-1.5-flash-latest'),
   prompt: `You are an expert programming tutor. The user has been presented with a lesson and now has a specific question about it.
 
-Answer the user's question clearly and concisely. Use Markdown for formatting (e.g., headings, lists, bold text, code blocks) to make the answer easy to read.
-
-While you should use the lesson content as the primary context, feel free to provide additional information or answer questions about related concepts, even if they are not explicitly covered in the lesson. Your goal is to help the user understand the broader topic.
+Your task is to answer the user's question by breaking down the topic into more depth, using analogies and clear, well-structured sections. Make it engaging and fun to read, not just a wall of text.
+Use Markdown formatting for the content of each section (e.g., headings, lists, bold text, code blocks) to ensure it is reader-friendly.
 
 Lesson Content:
 ---
@@ -44,6 +54,12 @@ Lesson Content:
 
 User's Question:
 "{{{userQuestion}}}"
+
+Now, generate a structured answer to the user's question.
+- Create a main title for this answer.
+- Write a brief introduction.
+- Create at least 2-3 detailed sections. Each section needs a title, detailed content in Markdown, and a fun, relatable analogy.
+- Write a concluding summary.
 `,
 });
 
