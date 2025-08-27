@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, Volume2, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles } from 'lucide-react';
 import { Header } from '@/components/header';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,20 +19,14 @@ import Chatbot from '@/components/chatbot';
 
 import { generateLessonAction } from '@/app/actions/generate-lesson-action';
 import { generateQuizAction } from '@/app/actions/generate-quiz-action';
-import { generateVisualAidAction } from '@/app/actions/generate-visual-aid-action';
-import { textToSpeechAction } from '@/app/actions/text-to-speech-action';
 
 function UniversalTutorView() {
   const [topic, setTopic] = useState('');
   const [lesson, setLesson] = useState<UniversalLesson | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
-  const [visualAidUrl, setVisualAidUrl] = useState<string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
-  const [isLoadingVisual, setIsLoadingVisual] = useState(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
@@ -60,8 +54,6 @@ function UniversalTutorView() {
     setError(null);
     setLesson(null);
     setQuiz(null);
-    setVisualAidUrl(null);
-    setAudioUrl(null);
 
     try {
       const result = await generateLessonAction({ topic });
@@ -99,41 +91,6 @@ function UniversalTutorView() {
           setIsLoadingQuiz(false);
       }
   };
-
-  const handleGenerateVisual = async () => {
-    if (!lesson) return;
-    setIsLoadingVisual(true);
-    try {
-      const result = await generateVisualAidAction({ topic: lesson.title, lessonContent: getLessonAsText(lesson) });
-      if (!result.success) {
-          throw new Error(result.message);
-      }
-      setVisualAidUrl(result.imageUrl);
-    } catch (e: any) {
-      setError(e.message || 'Failed to generate visual aid. Please try again.');
-      console.error(e);
-    } finally {
-      setIsLoadingVisual(false);
-    }
-  };
-
-  const handleGenerateAudio = async () => {
-    if (!lesson) return;
-    setIsLoadingAudio(true);
-    try {
-        const lessonText = getLessonAsText(lesson);
-        const result = await textToSpeechAction(lessonText);
-        if (!result.success) {
-            throw new Error(result.message);
-        }
-        setAudioUrl(result.audioDataUri);
-    } catch(e: any) {
-        setError(e.message || 'Failed to generate audio. Please try again.');
-        console.error(e);
-    } finally {
-        setIsLoadingAudio(false);
-    }
-  }
 
   const handleCorrectAnswer = () => {
       addXp(20);
@@ -214,43 +171,6 @@ function UniversalTutorView() {
 
                     <Separator />
 
-                    <div className='flex items-center flex-wrap gap-4'>
-                         <Button onClick={handleGenerateVisual} disabled={isLoadingVisual || !!visualAidUrl}>
-                            {isLoadingVisual ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
-                            {isLoadingVisual ? 'Generating...' : 'Visual Aid'}
-                        </Button>
-                         <Button onClick={handleGenerateAudio} disabled={isLoadingAudio || !!audioUrl}>
-                            {isLoadingAudio ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Volume2 className="mr-2 h-4 w-4" />}
-                             {isLoadingAudio ? 'Generating...' : 'Listen to Lesson'}
-                        </Button>
-                    </div>
-
-                    {audioUrl && (
-                        <Card className='bg-muted/50'>
-                            <CardContent className='p-4'>
-                                <audio controls className='w-full'>
-                                    <source src={audioUrl} type="audio/wav" />
-                                    Your browser does not support the audio element.
-                                </audio>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {visualAidUrl && (
-                        <Card className='bg-muted/50'>
-                            <CardHeader>
-                               <CardTitle className="text-xl">Visual Aid</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
-                                    <Image src={visualAidUrl} alt={`Visual aid for ${lesson.title}`} fill style={{ objectFit: 'contain' }} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    <Separator />
-
                     <Card className='bg-muted/50'>
                         <CardHeader>
                             <CardTitle className='flex items-center gap-3 text-xl'>
@@ -303,5 +223,3 @@ export default function UniversalTutorPage() {
     <UniversalTutorView />
   )
 }
-
-    

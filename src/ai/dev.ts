@@ -13,7 +13,3 @@ import '@/ai/flows/get-file-content.ts';
 import '@/ai/flows/explain-topic-further.ts';
 import '@/ai/flows/answer-topic-question.ts';
 import '@/ai/flows/generate-universal-lesson.ts';
-import '@/ai/flows/generate-visual-aid.ts';
-import '@/ai/flows/text-to-speech.ts';
-
-    
