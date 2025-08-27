@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { hash } from 'bcryptjs';
-import { NextApiRequest, NextApiResponse } from 'next';
 
 export async function POST(req: Request) {
   try {
