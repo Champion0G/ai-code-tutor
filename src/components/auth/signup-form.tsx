@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { CodeAlchemistIcon } from "../icons";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -147,16 +147,13 @@ export function SignupForm() {
               Login
             </Link>
           </div>
-           <Separator className="my-4" />
-           <div className="text-center space-y-2">
-              <Button asChild variant="link" className="text-muted-foreground p-0 h-auto">
-                <Link href="/">Back to Home</Link>
-              </Button>
-              <Button asChild variant="link" className="text-muted-foreground p-0 h-auto block mx-auto">
-                 <a href="mailto:techchampion08@gmail.com">Contact Support</a>
-              </Button>
-            </div>
         </CardContent>
+        <CardFooter className="flex flex-col gap-4">
+            <Separator />
+             <div className="text-center text-sm text-muted-foreground">
+                <Link href="/" className="underline">Back to Home</Link> | <a href="mailto:techchampion08@gmail.com" className="underline">Contact Support</a>
+            </div>
+        </CardFooter>
       </Card>
     </div>
   );

@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { CodeAlchemistIcon } from "@/components/icons";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -129,13 +129,13 @@ export default function ForgotPasswordPage() {
               Login
             </Link>
           </div>
-          <Separator className="my-4" />
-            <div className="text-center">
-              <a href="mailto:techchampion08@gmail.com" className="text-sm text-muted-foreground hover:underline">
-                Contact Support
-              </a>
-            </div>
         </CardContent>
+        <CardFooter className="flex flex-col gap-4">
+            <Separator />
+             <div className="text-center text-sm text-muted-foreground">
+                <a href="mailto:techchampion08@gmail.com" className="underline">Contact Support</a>
+            </div>
+        </CardFooter>
       </Card>
     </div>
   );
