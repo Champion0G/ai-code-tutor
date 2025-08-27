@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { GenerateLessonOutputSchema, GenerateLessonOutput } from './explain-topic-further';
+import { GenerateLessonOutput, GenerateLessonOutputSchema } from '@/models/lesson';
 
 
 const GenerateLessonInputSchema = z.object({

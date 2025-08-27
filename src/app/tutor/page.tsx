@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { BookOpen, ChevronLeft, Loader2, WandSparkles, Sparkles, Brain, HelpCircle } from 'lucide-react';
 import { generateLesson } from '@/ai/flows/generate-lesson';
-import type { GenerateLessonOutput } from '@/ai/flows/explain-topic-further';
+import type { GenerateLessonOutput } from '@/models/lesson';
 import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
 import { explainTopicFurther } from '@/ai/flows/explain-topic-further';
 import { answerTopicQuestion } from '@/ai/flows/answer-topic-question';
