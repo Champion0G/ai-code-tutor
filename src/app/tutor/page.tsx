@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,12 @@ function TutorView() {
   const [quizKey, setQuizKey] = useState(0);
 
   const { addXp, addBadge } = useGamification();
+  
+  useEffect(() => {
+    // This effect can cause issues if it resets state unintentionally.
+    // For now, we don't have a use case to clear the lesson when the topic changes
+    // as the user flow is to generate a lesson then interact with it.
+  }, [topic]);
 
   const handleGenerateLesson = async () => {
     if (!topic) {
@@ -229,13 +235,13 @@ function TutorView() {
                             <CardDescription>Use the options below to explore the topic further.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <Button onClick={handleExplainFurther} disabled={isLoadingExplanation} className="w-full">
+                          <Button onClick={handleExplainFurther} disabled={isLoadingExplanation} className="w-full sm:w-auto">
                             {isLoadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
                             {isLoadingExplanation ? 'Expanding...' : 'Explain Further'}
                           </Button>
                           
                           <form onSubmit={(e) => {e.preventDefault(); handleAskQuestion(); }} className="space-y-2">
-                             <label htmlFor="user-question">Ask a specific question</label>
+                             <Label htmlFor="user-question">Ask a specific question</Label>
                              <Textarea
                                 id="user-question"
                                 placeholder="e.g., 'What's the difference between let and var in this context?'"
@@ -285,5 +291,3 @@ export default function TutorPage() {
     <TutorView />
   )
 }
-
-    
