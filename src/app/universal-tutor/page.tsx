@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy } from 'lucide-react';
 import { Header } from '@/components/header';
 import { generateUniversalLesson } from '@/ai/flows/generate-universal-lesson';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 
 function UniversalTutorView() {
   const [topic, setTopic] = useState('');
@@ -88,26 +89,53 @@ function UniversalTutorView() {
 
           {lesson && (
             <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-6 space-y-8">
                     <article className="prose prose-lg max-w-none dark:prose-invert">
                         <h1>{lesson.title}</h1>
-                        <p className="lead">{lesson.introduction.analogy}</p>
+                        <p className="lead border-l-4 border-accent pl-4 italic">{lesson.introduction.analogy}</p>
 
                         <h2>Step-by-Step Breakdown</h2>
                         <ol>
                            {lesson.stepByStep.map((step, index) => (
-                               <li key={index}>
-                                   <strong>{step.title}:</strong> {step.content}
+                               <li key={index} className='mb-2'>
+                                   <strong className='font-semibold'>{step.title}:</strong> {step.content}
                                </li>
                            ))}
                         </ol>
-
+                        
                         <h2>Real-World Application</h2>
                         <p>{lesson.realWorldApplication}</p>
 
                         <h2>Summary</h2>
                         <p>{lesson.summary}</p>
                     </article>
+
+                    <Separator />
+
+                    <Card className='bg-muted/50'>
+                        <CardHeader>
+                            <CardTitle className='flex items-center gap-3 text-xl'>
+                                <BookCopy className='h-6 w-6 text-primary' />
+                                {lesson.deepDive.title}
+                            </CardTitle>
+                             <CardDescription>
+                                A more detailed, academic look into the topic.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className='prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap'>
+                                {lesson.deepDive.content}
+                            </div>
+                            {lesson.deepDive.references && lesson.deepDive.references.length > 0 && (
+                                <>
+                                    <h4 className='font-semibold mt-6 mb-2'>References</h4>
+                                    <ul className='list-disc list-inside text-sm space-y-1'>
+                                        {lesson.deepDive.references.map((ref, i) => <li key={i}>{ref}</li>)}
+                                    </ul>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
                 </CardContent>
             </Card>
           )}

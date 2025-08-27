@@ -13,6 +13,12 @@ const StepSchema = z.object({
     content: z.string().describe("The detailed content for this step."),
 });
 
+const DeepDiveSectionSchema = z.object({
+    title: z.string().describe("The title of the deep dive section."),
+    content: z.string().describe("A more advanced, academic explanation of the topic, formatted in Markdown."),
+    references: z.array(z.string()).optional().describe("A list of academic or external references, if applicable.")
+});
+
 // 2. Progressive Learning Levels (future enhancement)
 // 3. Interactive Reinforcement (future enhancement - quizzes, etc.)
 // 4. ADHD-Friendly (handled by structure)
@@ -29,6 +35,7 @@ export const UniversalLessonSchema = z.object({
   title: z.string().describe('A clear, engaging title for the lesson.'),
   introduction: IntroductionSchema,
   stepByStep: z.array(StepSchema).describe("A sequential, step-by-step breakdown of the topic."),
+  deepDive: DeepDiveSectionSchema.describe("An advanced, academic explanation for learners who want more detail."),
   realWorldApplication: RealWorldApplicationSchema,
   summary: z.string().describe("A brief summary to reinforce the main points of the lesson."),
 });

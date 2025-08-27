@@ -35,10 +35,11 @@ Please generate a lesson plan based on this topic. Structure your response accor
 1.  **title**: A clear, engaging title for the lesson.
 2.  **introduction**: Start with an Analogy to make the topic relatable.
 3.  **stepByStep**: Break down the topic into 3-5 sequential, easy-to-understand steps. Each step should have a title and content.
-4.  **realWorldApplication**: Explain a practical use case for this knowledge.
-5.  **summary**: A brief summary to reinforce the key points.
+4.  **deepDive**: Provide an advanced, academic explanation for learners who want to go deeper. This should include more technical details.
+5.  **realWorldApplication**: Explain a practical use case for this knowledge.
+6.  **summary**: A brief summary to reinforce the key points.
 
-Keep the language simple and accessible, especially for the introduction and step-by-step sections.
+Keep the language simple and accessible for the introduction and step-by-step sections, but use more formal, academic language for the deep dive.
 `,
 });
 
