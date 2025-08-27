@@ -64,6 +64,10 @@ export function LoginForm() {
         throw new Error(data.message || 'Something went wrong');
       }
 
+      if (!data.user) {
+        throw new Error('Login failed: User data not returned from server.');
+      }
+
       const user = data.user as User;
       loadInitialData({
         name: user.name,
