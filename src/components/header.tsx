@@ -13,7 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
-import { HomeIcon, User } from "lucide-react";
+import { BrainCircuit, HomeIcon, User } from "lucide-react";
 
 export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
   const { xp, level, badges, levelUpXp, isLoaded } = useGamification();
@@ -87,6 +87,12 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
                 <Button size="icon" variant="outline" className="h-9 w-9 md:w-auto md:px-3">
                     <HomeIcon className="h-4 w-4" />
                     <span className="hidden md:inline md:ml-2">Home</span>
+                </Button>
+            </Link>
+             <Link href="/universal-tutor" passHref>
+                <Button size="icon" variant="outline" className="h-9 w-9 md:w-auto md:px-3">
+                    <BrainCircuit className="h-4 w-4" />
+                    <span className="hidden md:inline md:ml-2">Universal Tutor</span>
                 </Button>
             </Link>
              <Link href="/profile" passHref>
