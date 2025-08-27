@@ -66,12 +66,7 @@ export function LoginForm() {
         description: `Welcome back, ${data.user.name}!`,
       });
 
-      // Load user data into context
       loadInitialData(data.user);
-
-      // Redirect to the explainer page after successful login
-      // Use window.location.href to force a full page reload, ensuring
-      // all contexts and server-side checks are re-run with the new auth state.
       window.location.href = '/explainer';
 
     } catch (error: any) {
@@ -98,7 +93,7 @@ export function LoginForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
+            <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
@@ -139,17 +134,17 @@ export function LoginForm() {
                  {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
-          </Form>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline">
-              Sign up
-            </Link>
-          </div>
+            </Form>
+             <div className="mt-4 text-center text-sm">
+                Don&apos;t have an account?{" "}
+                <Link href="/signup" className="underline">
+                Sign up
+                </Link>
+            </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
             <Separator />
-             <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-sm text-muted-foreground">
                 <Link href="/" className="underline">Back to Home</Link> | <Link href="/support" className="underline">Contact Support</Link>
             </div>
         </CardFooter>
