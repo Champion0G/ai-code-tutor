@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import cache from '@/services/cache';
 
 const SuggestCodeImprovementsInputSchema = z.object({
   codeSnippet: z
@@ -44,7 +45,15 @@ export type SuggestCodeImprovementsOutput = z.infer<
 export async function suggestCodeImprovements(
   input: SuggestCodeImprovementsInput
 ): Promise<SuggestCodeImprovementsOutput> {
-  return suggestCodeImprovementsFlow(input);
+  const cacheKey = cache.hash(input);
+  const cached = await cache.get<SuggestCodeImprovementsOutput>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const result = await suggestCodeImprovementsFlow(input);
+  await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({

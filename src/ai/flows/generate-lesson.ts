@@ -12,6 +12,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { GenerateLessonOutput, GenerateLessonOutputSchema } from '@/models/lesson';
+import cache from '@/services/cache';
 
 
 const GenerateLessonInputSchema = z.object({
@@ -23,7 +24,15 @@ export type GenerateLessonInput = z.infer<typeof GenerateLessonInputSchema>;
 export async function generateLesson(
   input: GenerateLessonInput
 ): Promise<GenerateLessonOutput> {
-  return generateLessonFlow(input);
+  const cacheKey = cache.hash(input);
+  const cached = await cache.get<GenerateLessonOutput>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const result = await generateLessonFlow(input);
+  await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({

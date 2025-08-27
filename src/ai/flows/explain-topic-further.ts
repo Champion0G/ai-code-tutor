@@ -8,6 +8,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { UniversalLesson, UniversalLessonSchema } from '@/models/universal-lesson';
+import cache from '@/services/cache';
 
 
 const ExplainTopicFurtherInputSchema = z.object({
@@ -36,7 +37,16 @@ export async function explainTopicFurther(
   input: ExplainTopicFurtherInput
 ): Promise<ExplainTopicFurtherOutput> {
   const typedInput = { lesson: input.lesson as UniversalLesson, quizScore: input.quizScore, userSummary: input.userSummary };
-  return explainTopicFurtherFlow(typedInput);
+  
+  const cacheKey = cache.hash(typedInput);
+  const cached = await cache.get<ExplainTopicFurtherOutput>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  
+  const result = await explainTopicFurtherFlow(typedInput);
+  await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({
@@ -80,4 +90,3 @@ const explainTopicFurtherFlow = ai.defineFlow(
     return output!;
   }
 );
-

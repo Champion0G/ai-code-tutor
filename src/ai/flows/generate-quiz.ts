@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import cache from '@/services/cache';
 
 const GenerateQuizInputSchema = z.object({
   fileContent: z.string().describe('The content of the file to generate a quiz from.'),
@@ -30,7 +31,18 @@ const GenerateQuizOutputSchema = z.object({
 export type GenerateQuizOutput = z.infer<typeof GenerateQuizOutputSchema>;
 
 export async function generateQuiz(input: GenerateQuizInput): Promise<GenerateQuizOutput> {
-  return generateQuizFlow(input);
+  // To keep quizzes fresh, we add a random salt to the cache key.
+  // This means quizzes are not cached unless the user regenerates one very quickly.
+  const cacheKey = cache.hash({...input, salt: Math.random() });
+  const cached = await cache.get<GenerateQuizOutput>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const result = await generateQuizFlow(input);
+  // We don't cache quiz results to ensure they are fresh each time.
+  // await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({

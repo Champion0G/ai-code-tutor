@@ -7,6 +7,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import cache from '@/services/cache';
 
 const GetFeedbackOnSummaryInputSchema = z.object({
   lessonContent: z.string().describe('The original content of the lesson.'),
@@ -24,7 +25,15 @@ export type GetFeedbackOnSummaryOutput = z.infer<typeof GetFeedbackOnSummaryOutp
 export async function getFeedbackOnSummary(
   input: GetFeedbackOnSummaryInput
 ): Promise<GetFeedbackOnSummaryOutput> {
-  return getFeedbackOnSummaryFlow(input);
+  const cacheKey = cache.hash(input);
+  const cached = await cache.get<GetFeedbackOnSummaryOutput>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  
+  const result = await getFeedbackOnSummaryFlow(input);
+  await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({

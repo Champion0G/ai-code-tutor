@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import cache from '@/services/cache';
 
 const SummarizeFileAndQAInputSchema = z.object({
   fileContent: z
@@ -25,7 +26,15 @@ const SummarizeFileAndQAOutputSchema = z.object({
 export type SummarizeFileAndQAOutput = z.infer<typeof SummarizeFileAndQAOutputSchema>;
 
 export async function summarizeFileAndQA(input: SummarizeFileAndQAInput): Promise<SummarizeFileAndQAOutput> {
-  return summarizeFileAndQAFlow(input);
+  const cacheKey = cache.hash(input);
+  const cached = await cache.get<SummarizeFileAndQAOutput>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  
+  const result = await summarizeFileAndQAFlow(input);
+  await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({

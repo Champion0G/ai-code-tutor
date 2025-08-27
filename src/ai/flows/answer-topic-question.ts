@@ -8,6 +8,7 @@
 import {ai} from '@/ai/genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
+import cache from '@/services/cache';
 
 const AnswerTopicQuestionInputSchema = z.object({
   lessonContent: z.string().describe('The full content of the lesson that was generated.'),
@@ -34,7 +35,15 @@ export type AnswerTopicQuestionOutput = z.infer<typeof AnswerTopicQuestionOutput
 export async function answerTopicQuestion(
   input: AnswerTopicQuestionInput
 ): Promise<AnswerTopicQuestionOutput> {
-  return answerTopicQuestionFlow(input);
+  const cacheKey = cache.hash(input);
+  const cached = await cache.get<AnswerTopicQuestionOutput>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const result = await answerTopicQuestionFlow(input);
+  await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({
@@ -74,5 +83,3 @@ const answerTopicQuestionFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    

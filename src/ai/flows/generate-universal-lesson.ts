@@ -8,6 +8,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { UniversalLesson, UniversalLessonSchema } from '@/models/universal-lesson';
+import cache from '@/services/cache';
 
 
 const GenerateUniversalLessonInputSchema = z.object({
@@ -20,7 +21,15 @@ export type GenerateUniversalLessonInput = z.infer<typeof GenerateUniversalLesso
 export async function generateUniversalLesson(
   input: GenerateUniversalLessonInput
 ): Promise<UniversalLesson> {
-  return generateUniversalLessonFlow(input);
+  const cacheKey = cache.hash(input);
+  const cached = await cache.get<UniversalLesson>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const result = await generateUniversalLessonFlow(input);
+  await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({

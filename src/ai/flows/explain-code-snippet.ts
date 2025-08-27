@@ -10,6 +10,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import cache from '@/services/cache';
+
 
 const ExplainCodeSnippetInputSchema = z.object({
   codeSnippet: z
@@ -24,7 +26,15 @@ const ExplainCodeSnippetOutputSchema = z.object({
 export type ExplainCodeSnippetOutput = z.infer<typeof ExplainCodeSnippetOutputSchema>;
 
 export async function explainCodeSnippet(input: ExplainCodeSnippetInput): Promise<ExplainCodeSnippetOutput> {
-  return explainCodeSnippetFlow(input);
+  const cacheKey = cache.hash(input);
+  const cached = await cache.get<ExplainCodeSnippetOutput>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  
+  const result = await explainCodeSnippetFlow(input);
+  await cache.set(cacheKey, result);
+  return result;
 }
 
 const prompt = ai.definePrompt({
