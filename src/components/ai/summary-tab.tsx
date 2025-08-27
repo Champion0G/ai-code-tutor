@@ -98,7 +98,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
             </Button>
             <Button onClick={handleRepoSummary} disabled={isRepoLoading || isLoading}>
                 <FolderGit2 className="mr-2 h-4 w-4" />
-                {isRepoLoading ? "Summarizing..." : "Summarize Folder/Repo"}
+                {isRepoLoading ? "Summarizing..." : "Summarize Repo/Folder"}
             </Button>
         </div>
         
