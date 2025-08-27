@@ -147,7 +147,7 @@ export function SignupForm() {
               Login
             </Link>
           </div>
-          <Separator className="my-4" />
+           <Separator className="my-4" />
            <div className="text-center">
               <Link href="/" className="text-sm text-muted-foreground hover:underline">
                 Back to Home
