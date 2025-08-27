@@ -5,11 +5,52 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CodeAlchemistIcon } from './icons';
-import { FileText, BookOpen, LifeBuoy, BrainCircuit } from 'lucide-react';
+import { FileText, BookOpen, LifeBuoy, BrainCircuit, User, LogOut } from 'lucide-react';
+import { useGamification } from '@/contexts/gamification-context';
+import { Skeleton } from './ui/skeleton';
 
-export function ModeSelection() {
+
+interface ModeSelectionProps {
+    onLogout: () => void;
+}
+
+
+export function ModeSelection({ onLogout }: ModeSelectionProps) {
+  const { isLoaded, email } = useGamification();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+        <div className="absolute top-4 right-4 z-10">
+        {!isLoaded ? (
+            <div className="flex gap-2">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-24" />
+            </div>
+        ) : email ? (
+          <div className="flex items-center gap-2">
+             <Link href="/profile" passHref>
+                <Button variant="outline" size="sm">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                </Button>
+            </Link>
+            <Button onClick={onLogout} variant="outline" size="sm">
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button asChild variant="outline" size="sm">
+                <Link href="/login">Login</Link>
+            </Button>
+             <Button asChild size="sm">
+                <Link href="/signup">Sign Up</Link>
+            </Button>
+          </div>
+        )}
+      </div>
+
       <div className="flex items-center gap-4 mb-8 text-center">
         <CodeAlchemistIcon className="h-10 w-10 md:h-12 md:w-12 text-primary" />
         <h1 className="text-3xl md:text-4xl font-bold tracking-tighter">Welcome to Code Alchemist</h1>
