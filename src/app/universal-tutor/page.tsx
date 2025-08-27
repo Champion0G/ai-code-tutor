@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -143,8 +142,7 @@ function UniversalTutorView() {
                         <Skeleton className="h-16 w-full" />
                     </div>
                 </div>
-            </Card>
-          )}
+            </Card>          )}
 
           {lesson && (
             <Card>
