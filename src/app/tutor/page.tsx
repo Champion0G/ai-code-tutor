@@ -16,6 +16,7 @@ import { Header } from '@/components/header';
 import { QuizView } from '@/components/quiz-view';
 import { useGamification } from '@/contexts/gamification-context';
 import { Separator } from '@/components/ui/separator';
+import { Chatbot } from '@/components/chatbot';
 
 function TutorView() {
   const [topic, setTopic] = useState('');
@@ -94,6 +95,12 @@ function TutorView() {
       addXp(20);
       addBadge('Quiz_Whiz');
   }
+
+  const lessonContentForContext = lesson ? 
+    `Title: ${lesson.title}\nIntroduction: ${lesson.introduction}\n` +
+    lesson.keyConcepts.map(c => `Concept: ${c.title}\nExplanation: ${c.explanation}\nCode: ${c.codeExample}`).join('\n\n') +
+    `\nConclusion: ${lesson.conclusion}`
+    : "";
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
@@ -232,6 +239,7 @@ function TutorView() {
           )}
         </div>
       </main>
+      {lesson && <Chatbot lessonContext={lessonContentForContext} />}
     </div>
   );
 }
