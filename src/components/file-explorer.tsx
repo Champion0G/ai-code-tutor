@@ -219,7 +219,7 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
         <div className="flex justify-end mb-2">
             <Button variant="ghost" size="sm" onClick={onReset}>
                 <History className="mr-2 h-4 w-4" />
-                Clear History & Reset
+                Reset to Example
             </Button>
         </div>
         <div className="flex-1 overflow-auto">

@@ -230,14 +230,13 @@ export function MainLayout() {
   };
 
   const handleReset = () => {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
       setFileTree(initialFileTree);
       setActiveFile(null);
       const firstFile = findFirstFile(initialFileTree);
       if(firstFile) setActiveFile(firstFile);
       toast({
           title: "Project Reset",
-          description: "The file explorer has been reset to the default example."
+          description: "Showing the default example project. Your work is still saved."
       });
   }
 
