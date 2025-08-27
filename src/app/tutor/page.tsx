@@ -9,9 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { BookOpen, ChevronLeft, Loader2, WandSparkles, Sparkles, Brain, HelpCircle, Lightbulb } from 'lucide-react';
 import { generateLesson } from '@/ai/flows/generate-lesson';
+import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
 import type { GenerateLessonOutput } from '@/models/lesson';
 import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
-import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
 import { answerTopicQuestion } from '@/ai/flows/answer-topic-question';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/header';
@@ -206,7 +206,7 @@ function TutorView() {
                                             <CardTitle className="text-xl flex items-center gap-3"><Brain className="h-6 w-6 text-primary" /> {section.title}</CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            <p className="prose prose-base max-w-none dark:prose-invert">{section.content}</p>
+                                            <p className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{section.content}</p>
                                             {section.analogy && (
                                                 <div className="p-4 bg-background/50 rounded-lg border border-dashed border-accent">
                                                     <p className="flex items-start gap-3">
@@ -251,7 +251,7 @@ function TutorView() {
                           {isLoadingAnswer && <Skeleton className="h-16 w-full" />}
                           {questionAnswer && (
                             <div className="p-4 bg-muted/50 rounded-lg">
-                                <p className="prose prose-base max-w-none dark:prose-invert">{questionAnswer}</p>
+                                <p className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{questionAnswer}</p>
                             </div>
                           )}
                         </CardContent>
@@ -285,3 +285,5 @@ export default function TutorPage() {
     <TutorView />
   )
 }
+
+    
