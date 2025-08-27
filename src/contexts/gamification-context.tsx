@@ -40,15 +40,6 @@ const GamificationContext = createContext<GamificationContextType | undefined>(
 
 const LEVEL_XP_BASE = 100;
 
-function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
-
-
 export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -59,34 +50,6 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   const [levelUpXp, setLevelUpXp] = useState(LEVEL_XP_BASE);
   const [badges, setBadges] = useState<Badge[]>([]);
   
-  const prevLevel = usePrevious(level);
-  const prevBadges = usePrevious(badges);
-
-  // Effect for level-up & new badge toasts
-  useEffect(() => {
-    // Do not run on initial render or if data hasn't loaded yet.
-    if (!isLoaded) return;
-  
-    // Level up toast
-    if (prevLevel !== undefined && level > prevLevel) {
-        toast({
-            title: "Level Up!",
-            description: `Congratulations, you've reached Level ${level}!`
-        });
-    }
-
-    // New badge toast
-    if (prevBadges !== undefined && badges.length > prevBadges.length) {
-        const latestBadge = badges[badges.length - 1];
-        if (latestBadge && latestBadge.name) {
-            toast({
-                title: "New Badge Unlocked!",
-                description: `You've earned the "${latestBadge.name.replace(/_/g, ' ')}" badge!`
-            });
-        }
-    }
-  }, [level, badges, prevLevel, prevBadges, isLoaded, toast]);
-
   const calculateLevelDetails = (currentLevel: number) => {
       return LEVEL_XP_BASE * Math.pow(1.5, currentLevel - 1);
   }
@@ -112,9 +75,6 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Handles the case for guest users who are not logged in.
-    // If after a short delay, `isLoaded` is still false, it means no user data was loaded,
-    // so we set it to true to unblock the UI.
     const timer = setTimeout(() => {
         if (!isLoaded) {
           setIsLoaded(true);
@@ -146,6 +106,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
 
   const addXp = useCallback((amount: number) => {
     if (!email) return; // Only signed-in users can gain XP
+    
     setXp(currentXp => {
         let newXp = currentXp + amount;
         let currentLevel = level;
@@ -155,6 +116,11 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
           newXp -= currentLevelUpXp;
           currentLevel++;
           currentLevelUpXp = Math.floor(calculateLevelDetails(currentLevel));
+          // Trigger level up toast directly here
+           toast({
+                title: "Level Up!",
+                description: `Congratulations, you've reached Level ${currentLevel}!`
+            });
         }
         
         setLevel(currentLevel);
@@ -162,19 +128,26 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         updateProgressInDb({ level: currentLevel, xp: newXp, badges: badges.map(b => b.name) });
         return newXp;
     });
-  }, [level, levelUpXp, badges, updateProgressInDb, email]);
+  }, [level, levelUpXp, badges, updateProgressInDb, email, toast]);
 
   const addBadge = useCallback((name: BadgeName) => {
     if (!email) return; // Only signed-in users can earn badges
+    
     setBadges(currentBadges => {
       if (!currentBadges.some(b => b.name === name)) {
-        const newBadges = [...currentBadges, { name, ...badgeDetails[name] }];
+        const newBadge = { name, ...badgeDetails[name] };
+        const newBadges = [...currentBadges, newBadge];
         updateProgressInDb({ level, xp, badges: newBadges.map(b => b.name) });
+        // Trigger new badge toast directly here
+        toast({
+            title: "New Badge Unlocked!",
+            description: `You've earned the "${newBadge.name.replace(/_/g, ' ')}" badge!`
+        });
         return newBadges;
       }
       return currentBadges;
     });
-  }, [email, level, xp, updateProgressInDb]);
+  }, [email, level, xp, updateProgressInDb, toast]);
 
   return (
     <GamificationContext.Provider
