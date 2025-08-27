@@ -94,6 +94,7 @@ export function SummaryTab({ fileContent, fileName, onSummary }: SummaryTabProps
         </form>
       </div>
 
+      <Separator className="my-4" />
 
       <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-4 min-h-[150px]">
         <ScrollArea className="h-full">
