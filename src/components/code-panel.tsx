@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FileNode } from "@/lib/mock-data";
@@ -11,6 +12,19 @@ interface CodePanelProps {
 }
 
 export function CodePanel({ file, onMouseUp }: CodePanelProps) {
+  let displayContent: string;
+
+  if (!file) {
+    displayContent = "No file selected.";
+  } else if (file.content) {
+    displayContent = file.content;
+  } else if (!file.content && file.path.startsWith('https://api.github.com')) {
+    displayContent = "Loading file content...";
+  } else {
+    displayContent = "Content not loaded. Please re-upload the folder to view this file.";
+  }
+
+
   return (
     <Card className="flex flex-col h-full">
       <CardHeader className="flex-row items-center gap-2 space-y-0">
@@ -23,7 +37,7 @@ export function CodePanel({ file, onMouseUp }: CodePanelProps) {
             className="p-4 text-sm font-code"
             onMouseUp={onMouseUp}
           >
-            <code>{file?.content || "No file selected."}</code>
+            <code>{displayContent}</code>
           </pre>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>

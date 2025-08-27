@@ -122,7 +122,20 @@ export function MainLayout() {
 
   const saveTreeToLocalStorage = (tree: FileNode[]) => {
       try {
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tree));
+          // Create a deep copy of the tree and remove file content before saving
+          const treeWithoutContent = JSON.parse(JSON.stringify(tree));
+          const stripContent = (nodes: FileNode[]) => {
+              nodes.forEach(node => {
+                  if (node.type === 'file') {
+                      delete node.content;
+                  }
+                  if (node.children) {
+                      stripContent(node.children);
+                  }
+              });
+          };
+          stripContent(treeWithoutContent);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(treeWithoutContent));
       } catch (error) {
           console.error("Failed to save to localStorage", error);
           toast({
@@ -156,7 +169,7 @@ export function MainLayout() {
                 
                 setFileTree(prevTree => {
                     const updatedTree = updateFileContent(prevTree, file.path, content);
-                    saveTreeToLocalStorage(updatedTree);
+                    // Don't save to localStorage here, it will be saved with content stripped
                     return updatedTree;
                 });
                 setActiveFile(newFileWithContent);
