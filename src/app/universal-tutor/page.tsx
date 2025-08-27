@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, RefreshCcw } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, RefreshCcw, CheckCircle, Lightbulb } from 'lucide-react';
 import { Header } from '@/components/header';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,9 +16,11 @@ import { QuizView } from '@/components/quiz-view';
 import { useGamification } from '@/contexts/gamification-context';
 import Chatbot from '@/components/chatbot';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { generateLessonAction } from '@/app/actions/generate-lesson-action';
 import { generateQuizAction } from '@/app/actions/generate-quiz-action';
+import { getFeedbackOnSummaryAction } from '@/app/actions/get-feedback-on-summary-action';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
@@ -32,10 +34,15 @@ function UniversalTutorView() {
   
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
   const { addXp, addBadge } = useGamification();
+
+  const [userSummary, setUserSummary] = useState("");
+  const [feedback, setFeedback] = useState<string | null>(null);
+
 
   const getLessonAsText = (currentLesson: UniversalLesson | null): string => {
     if (!currentLesson) return "";
@@ -59,6 +66,8 @@ function UniversalTutorView() {
     setError(null);
     setLesson(null);
     setQuiz(null);
+    setFeedback(null);
+    setUserSummary("");
 
     try {
       const result = await generateLessonAction({ topic, knowledgeLevel });
@@ -100,6 +109,30 @@ function UniversalTutorView() {
   const handleCorrectAnswer = () => {
       addXp(20);
       addBadge('Quiz_Whiz');
+  }
+
+  const handleGetFeedback = async () => {
+      if (!userSummary || !lesson) return;
+      setIsLoadingFeedback(true);
+      setFeedback(null);
+      setError(null);
+      
+      try {
+        const result = await getFeedbackOnSummaryAction({
+            lessonContent: getLessonAsText(lesson),
+            userSummary: userSummary,
+        });
+
+        if(!result.success) {
+            throw new Error(result.message);
+        }
+        setFeedback(result.feedback.feedback);
+        addXp(30);
+      } catch (e: any) {
+        setError(e.message || 'Failed to get feedback.');
+      } finally {
+        setIsLoadingFeedback(false);
+      }
   }
 
   const lessonContentForContext = getLessonAsText(lesson);
@@ -234,15 +267,35 @@ function UniversalTutorView() {
                         <CardContent>
                             <form className='space-y-4' onSubmit={(e) => {
                                 e.preventDefault();
-                                // This would be where you submit the summary to an AI for feedback
-                                alert("Feedback functionality coming soon!");
+                                handleGetFeedback();
                             }}>
                                 <Textarea 
                                     placeholder="Explain the main concepts here..."
                                     rows={5}
+                                    value={userSummary}
+                                    onChange={(e) => setUserSummary(e.target.value)}
+                                    disabled={isLoadingFeedback}
                                 />
-                                <Button>Get Feedback on my Summary</Button>
+                                <Button disabled={isLoadingFeedback || !userSummary}>
+                                  {isLoadingFeedback ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                  Get Feedback on my Summary
+                                </Button>
                             </form>
+                             {isLoadingFeedback && (
+                                <div className='mt-4 flex items-center justify-center'>
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                    <p>Analyzing your summary...</p>
+                                </div>
+                             )}
+                            {feedback && (
+                                <Alert className='mt-4 border-green-500'>
+                                    <CheckCircle className="h-4 w-4" />
+                                    <AlertTitle className='text-green-700'>Feedback Received!</AlertTitle>
+                                    <AlertDescription className='prose prose-sm max-w-none'>
+                                      <p>{feedback}</p>
+                                    </AlertDescription>
+                                </Alert>
+                            )}
                         </CardContent>
                     </Card>
 
