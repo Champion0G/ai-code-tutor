@@ -4,6 +4,7 @@ import clientPromise from '@/lib/mongodb';
 import { compare } from 'bcryptjs';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
+import { safeError } from '@/lib/safe-error';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
@@ -18,9 +19,10 @@ export async function POST(req: Request) {
     let client;
     try {
         client = await clientPromise;
-    } catch (error: any) {
+    } catch (error) {
         console.error("Failed to connect to the database", error);
-        return NextResponse.json({ message: 'Database connection failed.', error: error.message }, { status: 500 });
+        const safe = safeError(error);
+        return NextResponse.json({ message: 'Database connection failed.', error: safe.message }, { status: 500 });
     }
     
     const db = client.db("ai-code-tutor");
@@ -37,27 +39,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
     }
     
-    // Create JWT
     const token = await new SignJWT({ userId: user._id, email: user.email })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('1h') // Token expires in 1 hour
+      .setExpirationTime('1h')
       .sign(JWT_SECRET);
 
-    // Set cookie
     cookies().set('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60, // 1 hour
+        maxAge: 60 * 60,
         path: '/',
     });
 
-    // Don't send password back to the client
     const { password: _, ...userResponse } = user;
 
     return NextResponse.json({ message: 'Login successful.', user: userResponse }, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("An unexpected error occurred during login:", error);
-    return NextResponse.json({ message: 'An internal server error occurred.', error: error.message }, { status: 500 });
+    const safe = safeError(error);
+    return NextResponse.json({ message: 'An internal server error occurred.', error: safe.message }, { status: 500 });
   }
 }

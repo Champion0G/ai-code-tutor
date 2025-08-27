@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { hash } from 'bcryptjs';
 import { ObjectId } from 'mongodb';
+import { safeError } from '@/lib/safe-error';
 
 export async function POST(req: Request) {
   try {
@@ -44,8 +45,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: 'Password has been reset successfully.' }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Password reset error:", error);
-    return NextResponse.json({ message: 'An internal server error occurred.', error: error.message }, { status: 500 });
+    const safe = safeError(error);
+    return NextResponse.json({ message: 'An internal server error occurred.', error: safe.message }, { status: 500 });
   }
 }

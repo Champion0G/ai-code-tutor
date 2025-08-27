@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { ObjectId } from 'mongodb';
 import { User } from '@/models/user';
+import { safeError } from '@/lib/safe-error';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
@@ -19,7 +20,8 @@ export async function POST(req: Request) {
     try {
       decoded = await jwtVerify(token, JWT_SECRET);
     } catch (err) {
-      return NextResponse.json({ message: 'Invalid token.' }, { status: 401 });
+      const safe = safeError(err);
+      return NextResponse.json({ message: 'Invalid token.', error: safe.message }, { status: 401 });
     }
     
     const userId = decoded.payload.userId as string;
@@ -41,7 +43,6 @@ export async function POST(req: Request) {
     if (Object.keys(updateData).length === 1) {
       const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
       if (!user) return NextResponse.json({ message: 'User not found.' }, { status: 404 });
-      // Return user without password
       const { password, ...userResponse } = user;
       return NextResponse.json({ message: 'No progress data to update.', user: userResponse }, { status: 200 });
     }
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error('Failed to update progress:', error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    const safe = safeError(error);
+    return NextResponse.json({ message: 'An internal server error occurred.', error: safe.message }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { randomBytes } from 'crypto';
 import { ObjectId } from 'mongodb';
+import { safeError } from '@/lib/safe-error';
 
 export async function POST(req: Request) {
   try {
@@ -18,8 +19,6 @@ export async function POST(req: Request) {
     const user = await users.findOne({ email });
 
     if (!user) {
-      // Don't reveal that the user doesn't exist.
-      // Still return a success message for security reasons.
       return NextResponse.json({ message: 'If a user with that email exists, a reset link will be sent.' }, { status: 200 });
     }
 
@@ -36,16 +35,15 @@ export async function POST(req: Request) {
       }
     );
 
-    // In a real application, you would email this link to the user.
-    // For this demo, we will log it to the console.
     const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/reset-password?token=${resetToken}`;
     console.log(`Password reset link for ${email}: ${resetUrl}`);
 
 
     return NextResponse.json({ message: 'If a user with that email exists, a reset link will be sent.' }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Request password reset error:", error);
-    return NextResponse.json({ message: 'An internal server error occurred.', error: error.message }, { status: 500 });
+    const safe = safeError(error);
+    return NextResponse.json({ message: 'An internal server error occurred.', error: safe.message }, { status: 500 });
   }
 }

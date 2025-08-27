@@ -1,15 +1,16 @@
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { safeError } from '@/lib/safe-error';
 
 export async function POST() {
   try {
-    // To log out, we just need to delete the session cookie.
     cookies().delete('token');
     
     return NextResponse.json({ message: 'Logout successful.' }, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("An unexpected error occurred during logout:", error);
-    return NextResponse.json({ message: 'An internal server error occurred.', error: error.message }, { status: 500 });
+    const safe = safeError(error);
+    return NextResponse.json({ message: 'An internal server error occurred.', error: safe.message }, { status: 500 });
   }
 }

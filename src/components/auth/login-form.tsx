@@ -68,7 +68,6 @@ export function LoginForm() {
         throw new Error('Login failed: User data not returned from server.');
       }
       
-      // Ensure badges is an array, even if it's missing from the response
       const user: User = {
         ...data.user,
         badges: data.user.badges || [],
