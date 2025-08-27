@@ -82,8 +82,8 @@ export function ImproveTab({ selectedSnippet, onImprovement }: ImproveTabProps) 
         </div>
       </RadioGroup>
 
-      <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-1 min-h-[150px]">
-        <ScrollArea className="h-full p-3">
+      <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-2 min-h-[150px]">
+        <ScrollArea className="h-full p-2">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-20 w-full" />

@@ -81,7 +81,7 @@ export function QuizTab({ fileName, fileContent, onCorrectAnswer }: QuizTabProps
             New Quiz
         </Button>
       </div>
-      <div className="flex-1 overflow-auto -mx-4 px-4">
+      <div className="flex-1 overflow-auto -mx-4 px-2 py-2">
           <QuizView
             key={key}
             quiz={quiz}
