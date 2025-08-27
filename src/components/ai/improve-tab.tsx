@@ -55,7 +55,7 @@ export function ImproveTab({ selectedSnippet, onImprovement }: ImproveTabProps) 
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 mt-4">
         <h3 className="text-lg font-semibold">Suggest Improvements</h3>
         <p className="text-sm text-muted-foreground">
           Get AI-powered suggestions to improve your selected code.
@@ -83,7 +83,7 @@ export function ImproveTab({ selectedSnippet, onImprovement }: ImproveTabProps) 
       </RadioGroup>
 
       <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-2 min-h-[150px]">
-        <ScrollArea className="h-full p-2">
+        <ScrollArea className="h-full p-4">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-20 w-full" />
