@@ -50,10 +50,16 @@ function ProfileView() {
                         <CardHeader>
                             <CardTitle className='text-3xl'>Your Profile</CardTitle>
                             <CardDescription>
-                                {isLoggedIn ? "Your learning journey and achievements." : "Log in to see your progress and achievements."}
+                                {!isLoaded ? (
+                                    <Skeleton className="h-4 w-48" />
+                                ) : isLoggedIn ? (
+                                    "Your learning journey and achievements."
+                                ) : (
+                                    "Log in to see your progress and achievements."
+                                )}
                             </CardDescription>
                         </CardHeader>
-                        {isLoggedIn ? (
+                        {isLoaded && isLoggedIn ? (
                             <CardContent className="grid gap-8">
                                 <div className="space-y-4">
                                     <h3 className="font-semibold text-xl border-b pb-2">Account Information</h3>
@@ -88,8 +94,32 @@ function ProfileView() {
                                     </div>
                                 </div>
                             </CardContent>
+                        ) : !isLoaded ? (
+                            <CardContent className="grid gap-8">
+                                <div className="space-y-4">
+                                    <Skeleton className="h-6 w-1/3 mb-2" />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <Skeleton className="h-5 w-1/2" />
+                                        <Skeleton className="h-5 w-1/2" />
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <Skeleton className="h-6 w-1/3 mb-2" />
+                                     <div className="space-y-2 text-sm">
+                                        <Skeleton className="h-5 w-1/4" />
+                                        <Skeleton className="h-5 w-full" />
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <Skeleton className="h-6 w-1/3 mb-2" />
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                        <Skeleton className="aspect-square w-full" />
+                                        <Skeleton className="aspect-square w-full" />
+                                    </div>
+                                </div>
+                            </CardContent>
                         ) : (
-                            <CardContent>
+                             <CardContent>
                                 <div className="text-center py-12 text-muted-foreground">
                                     <p>Please log in to view your profile.</p>
                                 </div>
