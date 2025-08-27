@@ -2,10 +2,7 @@
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
-const options = {
-  tls: true,
-  tlsCAFile: '/etc/ssl/certs/ca-certificates.crt', // A common path for CA certificates in Debian/Ubuntu-based systems
-};
+const options = {};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
