@@ -9,16 +9,18 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, Volume2, Image as ImageIcon } from 'lucide-react';
 import { Header } from '@/components/header';
-import { generateUniversalLesson } from '@/ai/flows/generate-universal-lesson';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
-import { generateVisualAid } from '@/ai/flows/generate-visual-aid';
-import { textToSpeech } from '@/ai/flows/text-to-speech';
+import type { GenerateQuizOutput } from '@/ai/flows/generate-quiz';
 import { QuizView } from '@/components/quiz-view';
 import { useGamification } from '@/contexts/gamification-context';
 import Chatbot from '@/components/chatbot';
+
+import { generateLessonAction } from '@/app/actions/generate-lesson-action';
+import { generateQuizAction } from '@/app/actions/generate-quiz-action';
+import { generateVisualAidAction } from '@/app/actions/generate-visual-aid-action';
+import { textToSpeechAction } from '@/app/actions/text-to-speech-action';
 
 function UniversalTutorView() {
   const [topic, setTopic] = useState('');
@@ -61,12 +63,14 @@ function UniversalTutorView() {
     setVisualAidUrl(null);
     setAudioUrl(null);
 
-
     try {
-      const result = await generateUniversalLesson({ topic });
-      setLesson(result);
-    } catch (e) {
-      setError('Failed to generate lesson. Please try again.');
+      const result = await generateLessonAction({ topic });
+      if (!result.success) {
+          throw new Error(result.message);
+      }
+      setLesson(result.lesson);
+    } catch (e: any) {
+      setError(e.message || 'Failed to generate lesson. Please try again.');
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -82,11 +86,14 @@ function UniversalTutorView() {
       
       try {
           const lessonContent = `Title: ${lesson.title}\\nIntroduction: ${lesson.introduction.analogy}\\n${lesson.stepByStep.map(s => `Step: ${s.title}\\n${s.content}`).join('\\n\\n')}\\nConclusion: ${lesson.summary}`;
-          const result = await generateQuiz({ fileContent: lessonContent, fileName: lesson.title });
-          setQuiz(result);
+          const result = await generateQuizAction({ fileContent: lessonContent, fileName: lesson.title });
+          if (!result.success) {
+              throw new Error(result.message);
+          }
+          setQuiz(result.quiz);
           setQuizKey(prev => prev + 1);
-      } catch(e) {
-          setError('Failed to generate quiz. Please try again.');
+      } catch(e: any) {
+          setError(e.message || 'Failed to generate quiz. Please try again.');
           console.error(e);
       } finally {
           setIsLoadingQuiz(false);
@@ -97,10 +104,13 @@ function UniversalTutorView() {
     if (!lesson) return;
     setIsLoadingVisual(true);
     try {
-      const result = await generateVisualAid({ topic: lesson.title, lessonContent: getLessonAsText(lesson) });
+      const result = await generateVisualAidAction({ topic: lesson.title, lessonContent: getLessonAsText(lesson) });
+      if (!result.success) {
+          throw new Error(result.message);
+      }
       setVisualAidUrl(result.imageUrl);
-    } catch (e) {
-      setError('Failed to generate visual aid. Please try again.');
+    } catch (e: any) {
+      setError(e.message || 'Failed to generate visual aid. Please try again.');
       console.error(e);
     } finally {
       setIsLoadingVisual(false);
@@ -112,16 +122,18 @@ function UniversalTutorView() {
     setIsLoadingAudio(true);
     try {
         const lessonText = getLessonAsText(lesson);
-        const result = await textToSpeech(lessonText);
+        const result = await textToSpeechAction(lessonText);
+        if (!result.success) {
+            throw new Error(result.message);
+        }
         setAudioUrl(result.audioDataUri);
-    } catch(e) {
-        setError('Failed to generate audio. Please try again.');
+    } catch(e: any) {
+        setError(e.message || 'Failed to generate audio. Please try again.');
         console.error(e);
     } finally {
         setIsLoadingAudio(false);
     }
   }
-
 
   const handleCorrectAnswer = () => {
       addXp(20);
@@ -129,7 +141,6 @@ function UniversalTutorView() {
   }
 
   const lessonContentForContext = getLessonAsText(lesson);
-
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
@@ -238,9 +249,7 @@ function UniversalTutorView() {
                         </Card>
                     )}
 
-
                     <Separator />
-
 
                     <Card className='bg-muted/50'>
                         <CardHeader>
@@ -288,7 +297,6 @@ function UniversalTutorView() {
     </div>
   );
 }
-
 
 export default function UniversalTutorPage() {
   return (
