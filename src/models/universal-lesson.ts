@@ -38,6 +38,7 @@ export const UniversalLessonSchema = z.object({
   deepDive: DeepDiveSectionSchema.describe("An advanced, academic explanation for learners who want more detail."),
   realWorldApplication: RealWorldApplicationSchema,
   summary: z.string().describe("A brief summary to reinforce the main points of the lesson."),
+  knowledgeLevel: z.enum(['beginner', 'intermediate', 'advanced']).optional().describe('The intended knowledge level for this lesson.'),
 });
 
 export type UniversalLesson = z.infer<typeof UniversalLessonSchema>;

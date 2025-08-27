@@ -15,5 +15,3 @@ export async function generateLessonAction(input: GenerateUniversalLessonInput) 
         return { success: false, message: safe.message };
     }
 }
-
-    

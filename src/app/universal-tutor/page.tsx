@@ -18,9 +18,14 @@ import Chatbot from '@/components/chatbot';
 
 import { generateLessonAction } from '@/app/actions/generate-lesson-action';
 import { generateQuizAction } from '@/app/actions/generate-quiz-action';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+
+type KnowledgeLevel = "beginner" | "intermediate" | "advanced";
 
 function UniversalTutorView() {
   const [topic, setTopic] = useState('');
+  const [knowledgeLevel, setKnowledgeLevel] = useState<KnowledgeLevel>("beginner");
   const [lesson, setLesson] = useState<UniversalLesson | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
   
@@ -55,7 +60,7 @@ function UniversalTutorView() {
     setQuiz(null);
 
     try {
-      const result = await generateLessonAction({ topic });
+      const result = await generateLessonAction({ topic, knowledgeLevel });
       if (!result.success) {
           throw new Error(result.message);
       }
@@ -112,21 +117,45 @@ function UniversalTutorView() {
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Universal AI Tutor</CardTitle>
-              <CardDescription>Enter any topic you want to learn about, from calculus to ancient history.</CardDescription>
+              <CardDescription>Enter any topic, select your knowledge level, and let the AI teach you.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={(e) => { e.preventDefault(); handleGenerateLesson(); }} className="flex flex-col sm:flex-row gap-2">
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>What do you want to learn?</Label>
                 <Input
                   placeholder="e.g., 'The Water Cycle', 'Python for web dev', 'World War II'"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   disabled={isLoading}
                 />
-                <Button type="submit" disabled={isLoading || !topic}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
-                  {isLoading ? 'Generating...' : 'Teach Me'}
-                </Button>
-              </form>
+              </div>
+               <div className="space-y-2">
+                <Label>What is your knowledge level on this topic?</Label>
+                <RadioGroup
+                  value={knowledgeLevel}
+                  onValueChange={(v: KnowledgeLevel) => setKnowledgeLevel(v)}
+                  className="flex flex-wrap gap-4"
+                  disabled={isLoading}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="beginner" id="beginner" />
+                    <Label htmlFor="beginner" className="font-normal cursor-pointer">Beginner</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="intermediate" id="intermediate" />
+                    <Label htmlFor="intermediate" className="font-normal cursor-pointer">Intermediate</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="advanced" id="advanced" />
+                    <Label htmlFor="advanced" className="font-normal cursor-pointer">Advanced</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <Button onClick={handleGenerateLesson} disabled={isLoading || !topic} className="w-full sm:w-auto">
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
+                {isLoading ? 'Generating...' : 'Teach Me'}
+              </Button>
             </CardContent>
           </Card>
 
