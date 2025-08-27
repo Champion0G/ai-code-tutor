@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { BookOpen, ChevronLeft, Loader2, WandSparkles, Sparkles, Brain, HelpCircle, Lightbulb } from 'lucide-react';
@@ -13,7 +12,6 @@ import { generateLesson } from '@/ai/flows/generate-lesson';
 import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
 import type { GenerateLessonOutput } from '@/models/lesson';
 import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
-import { answerTopicQuestion } from '@/ai/flows/answer-topic-question';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/header';
 import { QuizView } from '@/components/quiz-view';
@@ -25,25 +23,16 @@ function TutorView() {
   const [lesson, setLesson] = useState<GenerateLessonOutput | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
   const [furtherExplanation, setFurtherExplanation] = useState<ExplainTopicFurtherOutput | null>(null);
-  const [userQuestion, setUserQuestion] = useState('');
-  const [questionAnswer, setQuestionAnswer] = useState<string | null>(null);
 
   const [isLoadingLesson, setIsLoadingLesson] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
-  const [isLoadingAnswer, setIsLoadingAnswer] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
 
   const { addXp, addBadge } = useGamification();
   
-  useEffect(() => {
-    // This effect can cause issues if it resets state unintentionally.
-    // For now, we don't have a use case to clear the lesson when the topic changes
-    // as the user flow is to generate a lesson then interact with it.
-  }, [topic]);
-
   const handleGenerateLesson = async () => {
     if (!topic) {
       setError('Please enter a topic to learn.');
@@ -55,8 +44,6 @@ function TutorView() {
     setLesson(null);
     setQuiz(null);
     setFurtherExplanation(null);
-    setQuestionAnswer(null);
-    setUserQuestion('');
 
     try {
       const result = await generateLesson({ topic });
@@ -101,23 +88,6 @@ function TutorView() {
       console.error(e);
     } finally {
       setIsLoadingExplanation(false);
-    }
-  };
-
-  const handleAskQuestion = async () => {
-    if (!lesson || !userQuestion) return;
-    setIsLoadingAnswer(true);
-    setError(null);
-    setQuestionAnswer(null);
-    try {
-      const lessonContent = `Title: ${lesson.title}\\nIntroduction: ${lesson.introduction}\\n${lesson.keyConcepts.map(c => `Concept: ${c.title}\\n${c.explanation}`).join('\\n\\n')}\\nConclusion: ${lesson.conclusion}`;
-      const result = await answerTopicQuestion({ lessonContent, userQuestion });
-      setQuestionAnswer(result.answer);
-    } catch (e) {
-      setError('Failed to get an answer. Please try again.');
-      console.error(e);
-    } finally {
-      setIsLoadingAnswer(false);
     }
   };
 
@@ -240,27 +210,6 @@ function TutorView() {
                             {isLoadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
                             {isLoadingExplanation ? 'Expanding...' : 'Explain Further'}
                           </Button>
-                          
-                          <form onSubmit={(e) => {e.preventDefault(); handleAskQuestion(); }} className="space-y-2">
-                             <Label htmlFor="user-question">Ask a specific question</Label>
-                             <Textarea
-                                id="user-question"
-                                placeholder="e.g., 'What's the difference between let and var in this context?'"
-                                value={userQuestion}
-                                onChange={(e) => setUserQuestion(e.target.value)}
-                                disabled={isLoadingAnswer}
-                             />
-                             <Button type="submit" disabled={isLoadingAnswer || !userQuestion} className="w-full">
-                               {isLoadingAnswer ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
-                               {isLoadingAnswer ? 'Thinking...' : 'Get Answer'}
-                             </Button>
-                          </form>
-                          {isLoadingAnswer && <Skeleton className="h-16 w-full" />}
-                          {questionAnswer && (
-                            <div className="p-4 bg-muted/50 rounded-lg">
-                                <div className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{questionAnswer}</div>
-                            </div>
-                          )}
                         </CardContent>
                       </Card>
 
@@ -292,5 +241,3 @@ export default function TutorPage() {
     <TutorView />
   )
 }
-
-    
