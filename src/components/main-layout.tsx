@@ -17,7 +17,7 @@ import { AiPanel } from "@/components/ai-panel";
 import { getFileContent } from "@/ai/flows/get-file-content";
 import { useToast } from "@/hooks/use-toast";
 
-const LOCAL_STORAGE_KEY = 'code-alchemist-file-tree';
+const LOCAL_STORAGE_KEY = 'lexer-file-tree';
 
 // Helper function to build a file tree from a flat list of files
 function buildFileTree(files: File[]): Promise<FileNode[]> {

@@ -3,7 +3,7 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { CodeAlchemistIcon, BadgeIcon } from "@/components/icons";
+import { LexerIcon, BadgeIcon } from "@/components/icons";
 import { useGamification } from "@/contexts/gamification-context";
 import {
   Tooltip,
@@ -26,8 +26,8 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
             <SidebarTrigger />
           </div>
         )}
-        <CodeAlchemistIcon className="h-7 w-7 text-primary" />
-        <h1 className="text-xl font-bold tracking-tighter hidden sm:inline-block">Code Alchemist</h1>
+        <LexerIcon className="h-7 w-7 text-primary" />
+        <h1 className="text-xl font-bold font-headline tracking-tighter hidden sm:inline-block">Lexer</h1>
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">

@@ -8,7 +8,7 @@ import { MessageSquare, Send, Loader2, X, GraduationCap, Sparkles } from "lucide
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { CodeAlchemistIcon } from "./icons";
+import { LexerIcon } from "./icons";
 import { cn } from "@/lib/utils";
 
 import { answerTopicQuestionAction, AnswerTopicQuestionOutput } from "@/app/actions/answer-topic-question-action";
@@ -132,7 +132,7 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
                     {!message.isUser && (
                         <Avatar className="h-8 w-8">
                             <AvatarFallback className="bg-primary text-primary-foreground">
-                                <CodeAlchemistIcon className="h-5 w-5" />
+                                <LexerIcon className="h-5 w-5" />
                             </AvatarFallback>
                         </Avatar>
                     )}
@@ -165,7 +165,7 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
                     <div className="flex items-start gap-3">
                         <Avatar className="h-8 w-8">
                              <AvatarFallback className="bg-primary text-primary-foreground">
-                                <CodeAlchemistIcon className="h-5 w-5" />
+                                <LexerIcon className="h-5 w-5" />
                             </AvatarFallback>
                         </Avatar>
                          <div className="rounded-lg p-3 bg-muted flex items-center justify-center">

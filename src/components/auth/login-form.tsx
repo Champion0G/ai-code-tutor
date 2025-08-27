@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { CodeAlchemistIcon } from "../icons";
+import { LexerIcon } from "../icons";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -96,8 +96,8 @@ export function LoginForm() {
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <CodeAlchemistIcon className="h-8 w-8 text-primary" />
-            <CardTitle className="text-2xl">Code Alchemist</CardTitle>
+            <LexerIcon className="h-8 w-8 text-primary" />
+            <CardTitle className="text-2xl font-headline">Lexer</CardTitle>
           </div>
           <CardDescription>
             Enter your credentials to access your account.

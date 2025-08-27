@@ -12,7 +12,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { FolderIcon, FileIcon, ChevronRightIcon, Upload, FolderUp, Github, Loader2, History } from "lucide-react";
-import { CodeAlchemistIcon } from "@/components/icons";
+import { LexerIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -162,8 +162,8 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
     <>
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-2 p-2">
-          <CodeAlchemistIcon className="h-6 w-6 text-primary" />
-          <h2 className="font-semibold text-lg">File Explorer</h2>
+          <LexerIcon className="h-6 w-6 text-primary" />
+          <h2 className="font-semibold font-headline text-lg">File Explorer</h2>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">

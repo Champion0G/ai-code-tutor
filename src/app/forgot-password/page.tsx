@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { CodeAlchemistIcon } from "@/components/icons";
+import { LexerIcon } from "@/components/icons";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
             <Card className="mx-auto max-w-sm w-full">
                 <CardHeader className="text-center">
                     <div className="flex items-center justify-center gap-2 mb-4">
-                        <CodeAlchemistIcon className="h-8 w-8 text-primary" />
+                        <LexerIcon className="h-8 w-8 text-primary" />
                         <CardTitle className="text-2xl">Check Your Console</CardTitle>
                     </div>
                 </CardHeader>
@@ -94,8 +94,8 @@ export default function ForgotPasswordPage() {
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <CodeAlchemistIcon className="h-8 w-8 text-primary" />
-            <CardTitle className="text-2xl">Forgot Password</CardTitle>
+            <LexerIcon className="h-8 w-8 text-primary" />
+            <CardTitle className="text-2xl font-headline">Forgot Password</CardTitle>
           </div>
           <CardDescription>
             Enter your email and we'll send you a link to reset your password.

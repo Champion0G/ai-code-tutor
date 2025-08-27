@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CodeAlchemistIcon } from "@/components/icons";
+import { LexerIcon } from "@/components/icons";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
@@ -84,7 +84,7 @@ function ResetPasswordForm() {
     return (
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader className="text-center">
-          <CardTitle>Password Reset Successful</CardTitle>
+          <CardTitle className="font-headline">Password Reset Successful</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-muted-foreground">
@@ -102,8 +102,8 @@ function ResetPasswordForm() {
     <Card className="mx-auto max-w-sm w-full">
       <CardHeader className="text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <CodeAlchemistIcon className="h-8 w-8 text-primary" />
-          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+          <LexerIcon className="h-8 w-8 text-primary" />
+          <CardTitle className="text-2xl font-headline">Reset Your Password</CardTitle>
         </div>
         <CardDescription>
           Enter a new password for your account.
