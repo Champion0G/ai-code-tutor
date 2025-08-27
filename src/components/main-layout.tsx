@@ -231,13 +231,18 @@ export function MainLayout() {
 
   const handleReset = () => {
       setFileTree(initialFileTree);
-      setActiveFile(null);
       const firstFile = findFirstFile(initialFileTree);
-      if(firstFile) setActiveFile(firstFile);
+      if(firstFile) {
+        setActiveFile(firstFile);
+      } else {
+        setActiveFile(null);
+      }
       toast({
           title: "Project Reset",
-          description: "Showing the default example project. Your work is still saved."
+          description: "Showing the default example project."
       });
+      // Clear the saved tree from local storage
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
   }
 
   return (

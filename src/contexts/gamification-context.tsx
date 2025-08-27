@@ -69,8 +69,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         
         if (prevBadges !== undefined && user.badges && user.badges.length > prevBadges.length) {
             const newBadgeName = user.badges[user.badges.length - 1];
-            const newBadgeDetails = badgeDetails[newBadgeName];
-            if (newBadgeDetails) {
+            if (newBadgeName && badgeDetails[newBadgeName]) {
                  toast({
                     title: "New Badge Unlocked!",
                     description: `You've earned the "${newBadgeName.replace(/_/g, ' ')}" badge!`
@@ -148,7 +147,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     if(updatedUser) {
         setUser(updatedUser);
     }
-  }, [user]);
+  }, [user, toast]);
 
   const addBadge = useCallback(async (badgeName: BadgeName) => {
     if (!user || (user.badges && user.badges.includes(badgeName))) return;
@@ -159,7 +158,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     if(updatedUser) {
         setUser(updatedUser);
     }
-  }, [user]);
+  }, [user, toast]);
 
   const mappedBadges = user?.badges?.map(name => ({ name, ...badgeDetails[name] })) ?? [];
 

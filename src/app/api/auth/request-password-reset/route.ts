@@ -19,6 +19,7 @@ export async function POST(req: Request) {
     const user = await users.findOne({ email });
 
     if (!user) {
+      // Don't reveal if a user exists or not
       return NextResponse.json({ message: 'If a user with that email exists, a reset link will be sent.' }, { status: 200 });
     }
 
@@ -35,6 +36,8 @@ export async function POST(req: Request) {
       }
     );
 
+    // In a real app, you would send an email here.
+    // For this example, we'll just log it to the console.
     const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/reset-password?token=${resetToken}`;
     console.log(`Password reset link for ${email}: ${resetUrl}`);
 
