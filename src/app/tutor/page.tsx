@@ -5,10 +5,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, ChevronLeft, Loader2, WandSparkles, Sparkles } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { BookOpen, ChevronLeft, Loader2, WandSparkles, Sparkles, Brain, HelpCircle } from 'lucide-react';
 import { generateLesson, GenerateLessonOutput } from '@/ai/flows/generate-lesson';
 import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
+import { explainTopicFurther } from '@/ai/flows/explain-topic-further';
+import { answerTopicQuestion } from '@/ai/flows/answer-topic-question';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/header';
 import { QuizView } from '@/components/quiz-view';
@@ -19,8 +22,15 @@ function TutorView() {
   const [topic, setTopic] = useState('');
   const [lesson, setLesson] = useState<GenerateLessonOutput | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
+  const [furtherExplanation, setFurtherExplanation] = useState<string | null>(null);
+  const [userQuestion, setUserQuestion] = useState('');
+  const [questionAnswer, setQuestionAnswer] = useState<string | null>(null);
+
   const [isLoadingLesson, setIsLoadingLesson] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
+  const [isLoadingAnswer, setIsLoadingAnswer] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
 
@@ -36,6 +46,9 @@ function TutorView() {
     setError(null);
     setLesson(null);
     setQuiz(null);
+    setFurtherExplanation(null);
+    setQuestionAnswer(null);
+    setUserQuestion('');
 
     try {
       const result = await generateLesson({ topic });
@@ -56,7 +69,7 @@ function TutorView() {
       setQuiz(null);
       
       try {
-          const lessonContent = `Title: ${lesson.title}\nIntroduction: ${lesson.introduction}\n${lesson.keyConcepts.map(c => `Concept: ${c.title}\n${c.explanation}`).join('\n\n')}\nConclusion: ${lesson.conclusion}`;
+          const lessonContent = `Title: ${lesson.title}\\nIntroduction: ${lesson.introduction}\\n${lesson.keyConcepts.map(c => `Concept: ${c.title}\\n${c.explanation}`).join('\\n\\n')}\\nConclusion: ${lesson.conclusion}`;
           const result = await generateQuiz({ fileContent: lessonContent, fileName: lesson.title });
           setQuiz(result);
           setQuizKey(prev => prev + 1); // Force re-render of QuizView
@@ -66,6 +79,38 @@ function TutorView() {
       } finally {
           setIsLoadingQuiz(false);
       }
+  };
+
+  const handleExplainFurther = async () => {
+    if (!lesson) return;
+    setIsLoadingExplanation(true);
+    setError(null);
+    try {
+      const result = await explainTopicFurther({ lesson });
+      setFurtherExplanation(result.furtherExplanation);
+    } catch (e) {
+      setError('Failed to generate further explanation. Please try again.');
+      console.error(e);
+    } finally {
+      setIsLoadingExplanation(false);
+    }
+  };
+
+  const handleAskQuestion = async () => {
+    if (!lesson || !userQuestion) return;
+    setIsLoadingAnswer(true);
+    setError(null);
+    setQuestionAnswer(null);
+    try {
+      const lessonContent = `Title: ${lesson.title}\\nIntroduction: ${lesson.introduction}\\n${lesson.keyConcepts.map(c => `Concept: ${c.title}\\n${c.explanation}`).join('\\n\\n')}\\nConclusion: ${lesson.conclusion}`;
+      const result = await answerTopicQuestion({ lessonContent, userQuestion });
+      setQuestionAnswer(result.answer);
+    } catch (e) {
+      setError('Failed to get an answer. Please try again.');
+      console.error(e);
+    } finally {
+      setIsLoadingAnswer(false);
+    }
   };
 
   const handleCorrectAnswer = () => {
@@ -148,16 +193,65 @@ function TutorView() {
 
                     <Separator className='my-8' />
 
-                    {quiz ? (
-                         <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
-                    ) : (
-                        <div className='text-center'>
-                             <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">
-                                {isLoadingQuiz ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                                {isLoadingQuiz ? 'Generating Quiz...' : 'Test Your Knowledge!'}
-                            </Button>
-                        </div>
-                    )}
+                    <div className="space-y-6">
+                      {furtherExplanation && (
+                        <Card className="bg-muted/50">
+                          <CardHeader>
+                            <CardTitle className="text-xl flex items-center gap-2"><Brain className="h-5 w-5" />Deeper Dive</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="prose prose-base max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: furtherExplanation.replace(/\n/g, '<br />') }}/>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      <Card>
+                        <CardHeader>
+                            <CardTitle className="text-xl">Still Curious?</CardTitle>
+                            <CardDescription>Use the options below to explore the topic further.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <Button onClick={handleExplainFurther} disabled={isLoadingExplanation} className="w-full">
+                            {isLoadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
+                            {isLoadingExplanation ? 'Expanding...' : 'Explain Further'}
+                          </Button>
+                          
+                          <form onSubmit={(e) => {e.preventDefault(); handleAskQuestion(); }} className="space-y-2">
+                             <Label htmlFor="user-question">Ask a specific question</Label>
+                             <Textarea
+                                id="user-question"
+                                placeholder="e.g., 'What's the difference between let and var in this context?'"
+                                value={userQuestion}
+                                onChange={(e) => setUserQuestion(e.target.value)}
+                                disabled={isLoadingAnswer}
+                             />
+                             <Button type="submit" disabled={isLoadingAnswer || !userQuestion} className="w-full">
+                               {isLoadingAnswer ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
+                               {isLoadingAnswer ? 'Thinking...' : 'Get Answer'}
+                             </Button>
+                          </form>
+                          {isLoadingAnswer && <Skeleton className="h-16 w-full" />}
+                          {questionAnswer && (
+                            <div className="p-4 bg-muted/50 rounded-lg">
+                                <p className="prose prose-base max-w-none dark:prose-invert">{questionAnswer}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                       <Separator className='my-8' />
+
+                      {quiz ? (
+                           <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
+                      ) : (
+                          <div className='text-center'>
+                               <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">
+                                  {isLoadingQuiz ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                  {isLoadingQuiz ? 'Generating Quiz...' : 'Test Your Knowledge!'}
+                              </Button>
+                          </div>
+                      )}
+                    </div>
                 </CardContent>
             </Card>
           )}

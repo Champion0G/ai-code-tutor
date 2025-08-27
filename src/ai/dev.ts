@@ -1,3 +1,4 @@
+
 'use server';
 import { config } from 'dotenv';
 config();
@@ -9,3 +10,5 @@ import '@/ai/flows/generate-quiz.ts';
 import '@/ai/flows/generate-lesson.ts';
 import '@/ai/flows/import-github-repo.ts';
 import '@/ai/flows/get-file-content.ts';
+import '@/ai/flows/explain-topic-further.ts';
+import '@/ai/flows/answer-topic-question.ts';
