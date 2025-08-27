@@ -70,10 +70,10 @@ export function ModeSelection() {
         </Card>
       </div>
        <div className="mt-12 text-center">
-          <a href="mailto:techchampion08@gmail.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/support" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
             <LifeBuoy className="h-4 w-4" />
             Contact Support
-          </a>
+          </Link>
         </div>
     </div>
   );

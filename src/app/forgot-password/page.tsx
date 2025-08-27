@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
         <CardFooter className="flex flex-col gap-4">
             <Separator />
              <div className="text-center text-sm text-muted-foreground">
-                <a href="mailto:techchampion08@gmail.com" className="underline">Contact Support</a>
+                <Link href="/support" className="underline">Contact Support</Link>
             </div>
         </CardFooter>
       </Card>

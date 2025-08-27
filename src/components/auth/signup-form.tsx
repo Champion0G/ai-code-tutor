@@ -151,7 +151,7 @@ export function SignupForm() {
         <CardFooter className="flex flex-col gap-4">
             <Separator />
              <div className="text-center text-sm text-muted-foreground">
-                <Link href="/" className="underline">Back to Home</Link> | <a href="mailto:techchampion08@gmail.com" className="underline">Contact Support</a>
+                <Link href="/" className="underline">Back to Home</Link> | <Link href="/support" className="underline">Contact Support</Link>
             </div>
         </CardFooter>
       </Card>
