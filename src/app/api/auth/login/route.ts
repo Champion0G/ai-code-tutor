@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const client = await clientPromise;
-    const db = client.db("ai-code-tutor");
+    const db = client.db(); // Use the default database from the connection string
 
     const user = await db.collection('users').findOne({ email });
 

@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { hash } from 'bcryptjs';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
     }
 
     const client = await clientPromise;
-    const db = client.db("ai-code-tutor");
+    const db = client.db(); // Use the default database from the connection string
 
     const existingUser = await db.collection('users').findOne({ email });
     if (existingUser) {
