@@ -22,11 +22,11 @@ export function QuizView({ quiz, onCorrectAnswer }: QuizViewProps) {
   const [isFinished, setIsFinished] = useState(false);
 
   const currentQuestionIndex = Object.keys(submittedAnswers).length;
-  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const currentQuestion = quiz?.questions[currentQuestionIndex];
   const selectedAnswer = selectedAnswers[currentQuestionIndex];
 
   const handleSubmit = () => {
-    if (!selectedAnswer) return;
+    if (!selectedAnswer || !currentQuestion) return;
 
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
     if (isCorrect) {
@@ -49,6 +49,23 @@ export function QuizView({ quiz, onCorrectAnswer }: QuizViewProps) {
   }
 
   if (isFinished) {
+      if (!quiz) {
+        return (
+          <Card className="text-center">
+              <CardHeader>
+                  <CardTitle>Quiz Complete!</CardTitle>
+              </CardHeader>
+              <CardContent>
+                  <p>You have finished the quiz.</p>
+              </CardContent>
+               <CardFooter>
+                  <Button onClick={handleRestart} className="w-full">
+                    Try Again
+                  </Button>
+              </CardFooter>
+          </Card>
+        )
+      }
       return (
           <Card className="text-center">
               <CardHeader>
