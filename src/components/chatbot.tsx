@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { MessageSquare, Send, Loader2, X } from "lucide-react";
+import { MessageSquare, Send, Loader2, X, GraduationCap, Sparkles } from "lucide-react";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
@@ -16,6 +16,7 @@ import { answerTopicQuestionAction, AnswerTopicQuestionOutput } from "@/app/acti
 
 interface ChatbotProps {
   lessonContext: string;
+  askSocraticQuestion: (question: string) => Promise<AnswerTopicQuestionOutput>;
 }
 
 interface Message {
@@ -24,12 +25,26 @@ interface Message {
   isUser: boolean;
 }
 
-export default function Chatbot({ lessonContext }: ChatbotProps) {
+const examplePrompts = [
+    "Explain this to me like I'm five.",
+    "What's another analogy for this?",
+    "Why is this important?",
+]
+
+export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+        const welcomeMessage: Message = { id: Date.now(), text: "Hello! I'm your AI Tutor. Ask me any follow-up questions about the lesson.", isUser: false };
+        setMessages([welcomeMessage]);
+    }
+  }, [isOpen, messages.length]);
 
 
   useEffect(() => {
@@ -44,12 +59,12 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
     }
   }, [messages, isLoading]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSend = async (messageText?: string) => {
+    const currentInput = messageText || input;
+    if (!currentInput.trim()) return;
 
-    const userMessage: Message = { id: Date.now(), text: input, isUser: true };
+    const userMessage: Message = { id: Date.now(), text: currentInput, isUser: true };
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = input;
     setInput("");
     setIsLoading(true);
 
@@ -70,6 +85,25 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
       setIsLoading(false);
     }
   };
+
+  const handleSocraticPrompt = async () => {
+    const socraticPreamble = "Ask me a socratic question about the lesson to help me think deeper.";
+    const userMessage: Message = { id: Date.now(), text: "Prompt: Ask me a socratic question.", isUser: true };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await askSocraticQuestion(socraticPreamble);
+      const aiMessage: Message = { id: Date.now() + 1, text: response, isUser: false };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (e: any) {
+       console.error("Chatbot socratic error:", e);
+       const errorMessage: Message = { id: Date.now() + 1, text: "Sorry, I couldn't generate a socratic question right now.", isUser: false };
+       setMessages(prev => [...prev, errorMessage]);
+    } finally {
+        setIsLoading(false);
+    }
+  }
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -141,7 +175,15 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
                 )}
             </div>
         </ScrollArea>
-        <footer className="p-4 border-t">
+        <footer className="p-4 border-t space-y-3">
+             <div className="flex flex-wrap gap-2">
+                {examplePrompts.map(prompt => (
+                    <Button key={prompt} size="sm" variant="outline" className="text-xs" onClick={() => handleSend(prompt)} disabled={isLoading}>
+                        <Sparkles className="mr-2 h-3 w-3" />
+                        {prompt}
+                    </Button>
+                ))}
+             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-center gap-2">
                 <Input
                     value={input}

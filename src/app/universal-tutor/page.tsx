@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, CheckCircle, Lightbulb, Brain } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, CheckCircle, Lightbulb, Brain, Award } from 'lucide-react';
 import { Header } from '@/components/header';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,6 +23,7 @@ import { generateQuizAction } from '@/app/actions/generate-quiz-action';
 import { getFeedbackOnSummaryAction } from '@/app/actions/get-feedback-on-summary-action';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { answerTopicQuestionAction } from '@/app/actions/answer-topic-question-action';
 
 import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
 
@@ -97,6 +98,7 @@ function UniversalTutorView() {
       setIsLoadingQuiz(true);
       setError(null);
       setQuiz(null);
+      setQuizScore(null);
       
       try {
           const lessonContent = `Title: ${lesson.title}\\nIntroduction: ${lesson.introduction.analogy}\\n${lesson.stepByStep.map(s => `Step: ${s.title}\\n${s.content}`).join('\\n\\n')}\\nConclusion: ${lesson.summary}`;
@@ -121,6 +123,7 @@ function UniversalTutorView() {
     try {
       const result = await explainTopicFurther({ lesson });
       setFurtherExplanation(result);
+      addXp(15);
     } catch (e: any) {
       setError(e.message || 'Failed to generate further explanation. Please try again.');
       console.error(e);
@@ -135,7 +138,11 @@ function UniversalTutorView() {
   }
 
   const handleQuizCompletion = (finalScore: number, totalQuestions: number) => {
-    setQuizScore({ score: finalScore, total: totalQuestions });
+    if (totalQuestions > 0) {
+        setQuizScore({ score: finalScore, total: totalQuestions });
+    } else {
+        setQuizScore(null); // Reset if quiz is restarted
+    }
   };
 
   const handleGetFeedback = async () => {
@@ -373,22 +380,43 @@ function UniversalTutorView() {
 
                     <Separator />
 
-                    {quiz ? (
-                        <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} onQuizComplete={handleQuizCompletion} />
-                    ) : (
-                        <div className='text-center'>
-                            <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">
-                                {isLoadingQuiz ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                                {isLoadingQuiz ? 'Generating Quiz...' : 'Test Your Knowledge!'}
-                            </Button>
-                        </div>
-                    )}
+                    <div className="space-y-4">
+                        {quiz ? (
+                            <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} onQuizComplete={handleQuizCompletion} />
+                        ) : (
+                            <div className='text-center'>
+                                <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">
+                                    {isLoadingQuiz ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                    {isLoadingQuiz ? 'Generating Quiz...' : 'Test Your Knowledge!'}
+                                </Button>
+                            </div>
+                        )}
+
+                        {quizScore && (
+                             <Alert variant="default" className="border-primary">
+                                <Award className="h-4 w-4" />
+                                <AlertTitle>Quiz Result</AlertTitle>
+                                <AlertDescription>
+                                    You scored {quizScore.score} out of {quizScore.total}. {quizScore.score / quizScore.total > 0.7 ? "Great job!" : "Keep practicing!"}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
           )}
         </div>
       </main>
-      {lesson && <Chatbot lessonContext={lessonContentForContext} />}
+      <Chatbot
+        lessonContext={lessonContentForContext}
+        askSocraticQuestion={async (question) => {
+            const result = await answerTopicQuestionAction({
+                lessonContent: `Socratic Question: ${question}`,
+                userQuestion: "Lead me to the answer socratically.",
+            });
+            return result.success ? result.answer : { title: "Error", introduction: "Could not get a socratic response.", sections: [], conclusion: "" };
+        }}
+        />
     </div>
   );
 }

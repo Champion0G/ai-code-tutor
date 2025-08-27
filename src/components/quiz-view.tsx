@@ -39,7 +39,9 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
 
     if (currentQuestionIndex === quiz.questions.length - 1) {
         setIsFinished(true);
-        onQuizComplete(isCorrect ? score + 1 : score, quiz.questions.length);
+        // Pass the final score to the parent component
+        const finalScore = isCorrect ? score + 1 : score;
+        onQuizComplete(finalScore, quiz.questions.length);
     }
   };
   
@@ -48,27 +50,10 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
       setSubmittedAnswers({});
       setScore(0);
       setIsFinished(false);
-      onQuizComplete(0, quiz.questions.length);
+      onQuizComplete(0, 0); // Reset score in parent
   }
 
   if (isFinished) {
-      if (!quiz) {
-        return (
-          <Card className="text-center">
-              <CardHeader>
-                  <CardTitle>Quiz Complete!</CardTitle>
-              </CardHeader>
-              <CardContent>
-                  <p>You have finished the quiz.</p>
-              </CardContent>
-               <CardFooter>
-                  <Button onClick={handleRestart} className="w-full">
-                    Try Again
-                  </Button>
-              </CardFooter>
-          </Card>
-        )
-      }
       return (
           <Card className="text-center">
               <CardHeader>
@@ -89,9 +74,11 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
   }
 
   if (!currentQuestion) {
+      // This can happen if the quiz has no questions or after finishing.
+      // A more robust UI might show a summary or a "Generate new quiz" button.
       return (
            <div className="text-muted-foreground text-center py-10">
-              Something went wrong, no more questions.
+              Quiz finished or no questions available.
           </div>
       )
   }
@@ -143,5 +130,3 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
     </Card>
   );
 }
-
-    
