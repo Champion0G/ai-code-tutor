@@ -52,7 +52,6 @@ function usePrevious<T>(value: T): T | undefined {
 export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const [isLoaded, setIsLoaded] = useState(false);
-  const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
   const [name, setName] = useState("Guest");
   const [email, setEmail] = useState("");
   const [xp, setXp] = useState(0);
@@ -63,28 +62,31 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   const prevLevel = usePrevious(level);
   const prevBadges = usePrevious(badges);
 
-  // Effect for level-up toast
+  // Effect for level-up & new badge toasts
   useEffect(() => {
-    if (hasLoadedInitialData && prevLevel !== undefined && level > prevLevel) {
+    // Ensure we don't fire toasts on the initial load before data is settled.
+    if (!isLoaded) return;
+  
+    // Level up toast
+    if (prevLevel !== undefined && level > prevLevel) {
         toast({
             title: "Level Up!",
             description: `Congratulations, you've reached Level ${level}!`
         });
     }
-  }, [level, prevLevel, hasLoadedInitialData, toast]);
 
-  // Effect for new badge toast
-  useEffect(() => {
-    if (hasLoadedInitialData && prevBadges !== undefined && badges.length > prevBadges.length) {
+    // New badge toast
+    if (prevBadges !== undefined && badges.length > prevBadges.length) {
         const latestBadge = badges[badges.length - 1];
-        if (latestBadge) {
+        // Extra safe check to ensure latestBadge is not undefined.
+        if (latestBadge && latestBadge.name) {
             toast({
                 title: "New Badge Unlocked!",
                 description: `You've earned the "${latestBadge.name.replace(/_/g, ' ')}" badge!`
             });
         }
     }
-  }, [badges, prevBadges, hasLoadedInitialData, toast]);
+  }, [level, badges, prevLevel, prevBadges, isLoaded, toast]);
 
   const calculateLevelDetails = (currentLevel: number) => {
       return LEVEL_XP_BASE * Math.pow(1.5, currentLevel - 1);
@@ -98,7 +100,6 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     setBadges(data.badges.map(name => ({ name, ...badgeDetails[name] })));
     setLevelUpXp(Math.floor(calculateLevelDetails(data.level)));
     setIsLoaded(true);
-    setHasLoadedInitialData(true);
   }, []);
 
   const resetContext = useCallback(() => {
@@ -109,22 +110,18 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     setBadges([]);
     setLevelUpXp(LEVEL_XP_BASE);
     setIsLoaded(true);
-    setHasLoadedInitialData(true);
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
         if (!isLoaded) {
-            setIsLoaded(true);
-            // We set hasLoadedInitialData to true here for non-logged-in users
-            // For logged-in users, it's set in loadInitialData
-            if (!email) {
-              setHasLoadedInitialData(true);
-            }
+          // If after 1 second, we still haven't loaded data (i.e., no logged-in user),
+          // we set the state to loaded for guest users.
+          setIsLoaded(true);
         }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [isLoaded, email])
+  }, [isLoaded])
 
   const updateProgressInDb = useCallback(async (updatedProgress: { level: number, xp: number, badges: BadgeName[] }) => {
       if(!email) return; 
