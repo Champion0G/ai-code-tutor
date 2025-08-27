@@ -67,7 +67,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
             });
         }
         
-        if (prevBadges !== undefined && user.badges.length > prevBadges.length) {
+        if (prevBadges !== undefined && user.badges && user.badges.length > prevBadges.length) {
             const newBadgeName = user.badges[user.badges.length - 1];
             const newBadgeDetails = badgeDetails[newBadgeName];
             if (newBadgeDetails) {
@@ -148,20 +148,20 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     if(updatedUser) {
         setUser(updatedUser);
     }
-  }, [user, toast]);
+  }, [user]);
 
   const addBadge = useCallback(async (badgeName: BadgeName) => {
-    if (!user || user.badges.includes(badgeName)) return;
+    if (!user || (user.badges && user.badges.includes(badgeName))) return;
 
-    const newBadges = [...user.badges, badgeName];
+    const newBadges = [...(user.badges || []), badgeName];
     const updatedUser = await updateProgressInDb({ badges: newBadges });
     
     if(updatedUser) {
         setUser(updatedUser);
     }
-  }, [user, toast]);
+  }, [user]);
 
-  const mappedBadges = user?.badges.map(name => ({ name, ...badgeDetails[name] })) ?? [];
+  const mappedBadges = user?.badges?.map(name => ({ name, ...badgeDetails[name] })) ?? [];
 
   return (
     <GamificationContext.Provider
