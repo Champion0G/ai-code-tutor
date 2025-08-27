@@ -53,7 +53,7 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
                 </Tooltip>
               </div>
               <div className="flex items-center gap-1 md:gap-2">
-                {badges.map((badge) => (
+                {badges && badges.map((badge) => (
                   <Tooltip key={badge.name}>
                     <TooltipTrigger asChild>
                       <div className="rounded-full bg-accent/20 p-1.5 border border-accent/50">
