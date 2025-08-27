@@ -84,13 +84,13 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
         
         <div className="flex gap-1 md:gap-2">
             <Link href="/" passHref>
-                <Button size="icon" variant="outline" className="h-8 w-8 md:h-9 md:w-auto md:px-3">
+                <Button size="icon" variant="outline" className="h-9 w-9 md:w-auto md:px-3">
                     <HomeIcon className="h-4 w-4" />
                     <span className="hidden md:inline md:ml-2">Home</span>
                 </Button>
             </Link>
              <Link href="/profile" passHref>
-                <Button size="icon" variant="outline" className="h-8 w-8 md:h-9 md:w-auto md:px-3">
+                <Button size="icon" variant="outline" className="h-9 w-9 md:w-auto md:px-3">
                     <User className="h-4 w-4" />
                     <span className="hidden md:inline md:ml-2">Profile</span>
                 </Button>

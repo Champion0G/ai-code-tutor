@@ -136,7 +136,7 @@ function TutorView() {
               <CardDescription>Enter a programming topic, concept, or language feature below.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={(e) => { e.preventDefault(); handleGenerateLesson(); }} className="flex gap-2">
+              <form onSubmit={(e) => { e.preventDefault(); handleGenerateLesson(); }} className="flex flex-col sm:flex-row gap-2">
                 <Input
                   placeholder="e.g., 'React Hooks', 'Python decorators', 'CSS Flexbox'"
                   value={topic}
@@ -199,14 +199,14 @@ function TutorView() {
                         <div className="space-y-6">
                             <h2 className="text-3xl font-bold tracking-tight text-center">{furtherExplanation.title}</h2>
                             <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto">{furtherExplanation.introduction}</p>
-                            <div className="grid gap-6 md:grid-cols-1">
+                            <div className="grid gap-6">
                                 {furtherExplanation.sections.map((section, index) => (
                                     <Card key={index} className="bg-muted/50">
                                         <CardHeader>
                                             <CardTitle className="text-xl flex items-center gap-3"><Brain className="h-6 w-6 text-primary" /> {section.title}</CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            <p className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{section.content}</p>
+                                            <div className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{section.content}</div>
                                             {section.analogy && (
                                                 <div className="p-4 bg-background/50 rounded-lg border border-dashed border-accent">
                                                     <p className="flex items-start gap-3">
@@ -251,7 +251,7 @@ function TutorView() {
                           {isLoadingAnswer && <Skeleton className="h-16 w-full" />}
                           {questionAnswer && (
                             <div className="p-4 bg-muted/50 rounded-lg">
-                                <p className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{questionAnswer}</p>
+                                <div className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{questionAnswer}</div>
                             </div>
                           )}
                         </CardContent>

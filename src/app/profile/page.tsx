@@ -57,7 +57,7 @@ function ProfileView() {
                             <CardContent className="grid gap-8">
                                 <div className="space-y-4">
                                     <h3 className="font-semibold text-xl border-b pb-2">Account Information</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                         <p><strong>Name:</strong> {name}</p>
                                         <p><strong>Email:</strong> {email}</p>
                                     </div>

@@ -187,14 +187,14 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
         <div className="flex flex-col gap-2">
             <div className="space-y-2">
                 <p className="text-sm font-medium">Import from GitHub</p>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <Input 
                         placeholder="https://github.com/owner/repo"
                         value={repoUrl}
                         onChange={(e) => setRepoUrl(e.target.value)}
                         disabled={isImporting}
                     />
-                    <Button onClick={handleImportRepo} disabled={isImporting || !repoUrl} size="icon">
+                    <Button onClick={handleImportRepo} disabled={isImporting || !repoUrl} size="icon" className='shrink-0'>
                         {isImporting ? <Loader2 className="animate-spin" /> : <Github />}
                     </Button>
                 </div>
