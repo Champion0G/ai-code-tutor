@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { BookOpen, ChevronLeft, Loader2, WandSparkles, Sparkles, Brain, HelpCircle } from 'lucide-react';
+import { BookOpen, ChevronLeft, Loader2, WandSparkles, Sparkles, Brain, HelpCircle, Lightbulb } from 'lucide-react';
 import { generateLesson } from '@/ai/flows/generate-lesson';
 import type { GenerateLessonOutput } from '@/models/lesson';
 import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
-import { explainTopicFurther } from '@/ai/flows/explain-topic-further';
+import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
 import { answerTopicQuestion } from '@/ai/flows/answer-topic-question';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/header';
@@ -23,7 +23,7 @@ function TutorView() {
   const [topic, setTopic] = useState('');
   const [lesson, setLesson] = useState<GenerateLessonOutput | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
-  const [furtherExplanation, setFurtherExplanation] = useState<string | null>(null);
+  const [furtherExplanation, setFurtherExplanation] = useState<ExplainTopicFurtherOutput | null>(null);
   const [userQuestion, setUserQuestion] = useState('');
   const [questionAnswer, setQuestionAnswer] = useState<string | null>(null);
 
@@ -88,7 +88,7 @@ function TutorView() {
     setError(null);
     try {
       const result = await explainTopicFurther({ lesson });
-      setFurtherExplanation(result.furtherExplanation);
+      setFurtherExplanation(result);
     } catch (e) {
       setError('Failed to generate further explanation. Please try again.');
       console.error(e);
@@ -196,14 +196,31 @@ function TutorView() {
 
                     <div className="space-y-6">
                       {furtherExplanation && (
-                        <Card className="bg-muted/50">
-                          <CardHeader>
-                            <CardTitle className="text-xl flex items-center gap-2"><Brain className="h-5 w-5" />Deeper Dive</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="prose prose-base max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: furtherExplanation.replace(/\\n/g, '<br />') }}/>
-                          </CardContent>
-                        </Card>
+                        <div className="space-y-6">
+                            <h2 className="text-3xl font-bold tracking-tight text-center">{furtherExplanation.title}</h2>
+                            <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto">{furtherExplanation.introduction}</p>
+                            <div className="grid gap-6 md:grid-cols-1">
+                                {furtherExplanation.sections.map((section, index) => (
+                                    <Card key={index} className="bg-muted/50">
+                                        <CardHeader>
+                                            <CardTitle className="text-xl flex items-center gap-3"><Brain className="h-6 w-6 text-primary" /> {section.title}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <p className="prose prose-base max-w-none dark:prose-invert">{section.content}</p>
+                                            {section.analogy && (
+                                                <div className="p-4 bg-background/50 rounded-lg border border-dashed border-accent">
+                                                    <p className="flex items-start gap-3">
+                                                        <Lightbulb className="h-5 w-5 text-accent mt-1 shrink-0" />
+                                                        <span className="flex-1 text-sm italic"><strong className='not-italic'>Analogy:</strong> {section.analogy}</span>
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                            <p className="text-center text-muted-foreground">{furtherExplanation.conclusion}</p>
+                        </div>
                       )}
 
                       <Card>
