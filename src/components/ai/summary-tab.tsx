@@ -53,7 +53,7 @@ export function SummaryTab({ fileContent, fileName, onSummary }: SummaryTabProps
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      <div>
+      <div className="mt-4">
         <h3 className="text-lg font-semibold">File Summary & Q&A</h3>
         <p className="text-sm text-muted-foreground">
           Get a summary of <strong>{fileName}</strong> and ask questions about it.
