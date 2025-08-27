@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, CheckCircle, Lightbulb, Brain, Award } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, CheckCircle, Lightbulb, Brain, Award, Drama } from 'lucide-react';
 import { Header } from '@/components/header';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -276,6 +276,34 @@ function UniversalTutorView() {
 
                     <Separator />
 
+                    {lesson.narrative && (
+                        <>
+                            <Card className='bg-muted/50'>
+                                <CardHeader>
+                                    <CardTitle className='flex items-center gap-3 text-xl'>
+                                        <Drama className='h-6 w-6 text-primary' />
+                                        {lesson.narrative.title}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        A story to help you understand the topic better.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className='prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap'>
+                                        <p>{lesson.narrative.story}</p>
+                                        {lesson.narrative.moral && (
+                                            <p className='italic text-muted-foreground'>
+                                                <strong>Moral of the story:</strong> {lesson.narrative.moral}
+                                            </p>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Separator />
+                        </>
+                    )}
+
+
                     <Card className='bg-muted/50'>
                         <CardHeader>
                             <CardTitle className='flex items-center gap-3 text-xl'>
@@ -436,4 +464,3 @@ export default function UniversalTutorPage() {
     <UniversalTutorView />
   )
 }
-

@@ -19,15 +19,11 @@ const DeepDiveSectionSchema = z.object({
     references: z.array(z.string()).optional().describe("A list of academic or external references, if applicable.")
 });
 
-// 2. Progressive Learning Levels (future enhancement)
-// 3. Interactive Reinforcement (future enhancement - quizzes, etc.)
-// 4. ADHD-Friendly (handled by structure)
-// 5. Multi-Sensory (future enhancement - TTS, visuals)
-
-// 6. Real-World Application
-const RealWorldApplicationSchema = z.string().describe("A practical, real-world use case for the topic being taught.");
-
-// 7-10: Other framework points (future enhancements)
+const NarrativeSectionSchema = z.object({
+    title: z.string().describe("An engaging title for the story, e.g., 'The Journey of a Water Droplet'."),
+    story: z.string().describe("A narrative that explains the topic through storytelling, making it engaging and memorable. Formatted in Markdown."),
+    moral: z.string().optional().describe("A concluding sentence that summarizes the key takeaway of the story, like a moral."),
+});
 
 
 // Main Lesson Schema
@@ -36,7 +32,8 @@ export const UniversalLessonSchema = z.object({
   introduction: IntroductionSchema,
   stepByStep: z.array(StepSchema).describe("A sequential, step-by-step breakdown of the topic."),
   deepDive: DeepDiveSectionSchema.describe("An advanced, academic explanation for learners who want more detail."),
-  realWorldApplication: RealWorldApplicationSchema,
+  narrative: NarrativeSectionSchema.optional().describe("An engaging story or narrative to explain the topic."),
+  realWorldApplication: z.string().describe("A practical, real-world use case for the topic being taught."),
   summary: z.string().describe("A brief summary to reinforce the main points of the lesson."),
   knowledgeLevel: z.enum(['beginner', 'intermediate', 'advanced']).optional().describe('The intended knowledge level for this lesson.'),
 });

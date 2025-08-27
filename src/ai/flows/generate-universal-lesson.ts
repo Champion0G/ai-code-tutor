@@ -34,14 +34,15 @@ The user's knowledge level is: {{{knowledgeLevel}}}
 Please generate a lesson plan based on this topic and knowledge level. Structure your response according to the provided JSON schema. Here is a brief overview of the key sections you must generate:
 
 1.  **title**: A clear, engaging title for the lesson.
-2.  **introduction**: Start with an Analogy. Adjust the complexity of the analogy for the user's knowledge level.
-3.  **stepByStep**: Break down the topic into 3-5 sequential steps. For beginners, use simple language. For advanced, cover more nuance in each step.
-4.  **deepDive**: Provide an advanced, academic explanation. For beginners, this can be a brief "For the Curious" section. For advanced users, it should be highly detailed with technical terms.
-5.  **realWorldApplication**: Explain a practical use case. Tailor the complexity of the application to the user's level.
-6.  **summary**: A brief summary to reinforce the key points.
-7.  **knowledgeLevel**: Echo back the knowledge level this lesson was generated for.
+2.  **introduction**: Start with an Analogy. Adjust the complexity for the user's knowledge level.
+3.  **stepByStep**: Break down the topic into 3-5 sequential steps.
+4.  **deepDive**: Provide an advanced, academic explanation.
+5.  **narrative**: Create a story to explain the topic. Give it a title, the story itself, and a concluding 'moral' or takeaway. This is crucial for engagement.
+6.  **realWorldApplication**: Explain a practical use case.
+7.  **summary**: A brief summary to reinforce the key points.
+8.  **knowledgeLevel**: Echo back the knowledge level this lesson was generated for.
 
-Keep the language simple and accessible for beginners. Use more formal, academic language and assume prior knowledge for advanced users.
+Keep the language simple for beginners, and more academic for advanced users. The narrative should be creative and relevant.
 `,
 });
 
