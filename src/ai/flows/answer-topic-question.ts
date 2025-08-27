@@ -6,6 +6,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const AnswerTopicQuestionInputSchema = z.object({
@@ -29,6 +30,7 @@ const prompt = ai.definePrompt({
   name: 'answerTopicQuestionPrompt',
   input: {schema: AnswerTopicQuestionInputSchema},
   output: {schema: AnswerTopicQuestionOutputSchema},
+  model: googleAI('gemini-1.5-flash-latest'),
   prompt: `You are an expert programming tutor. The user has been presented with a lesson and now has a specific question about it.
 
 Answer the user's question clearly and concisely. Use Markdown for formatting (e.g., headings, lists, bold text, code blocks) to make the answer easy to read.
