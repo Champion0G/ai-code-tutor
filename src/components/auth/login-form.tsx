@@ -147,10 +147,13 @@ export function LoginForm() {
             </Link>
           </div>
           <Separator className="my-4" />
-           <div className="text-center">
-              <Link href="/" className="text-sm text-muted-foreground hover:underline">
+           <div className="text-center space-y-2">
+              <Link href="/" className="text-sm text-muted-foreground hover:underline block">
                 Back to Home
               </Link>
+              <a href="mailto:techchampion08@gmail.com" className="text-sm text-muted-foreground hover:underline block">
+                Contact Support
+              </a>
             </div>
         </CardContent>
       </Card>

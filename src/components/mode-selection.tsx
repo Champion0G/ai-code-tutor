@@ -1,10 +1,11 @@
+
 "use client";
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CodeAlchemistIcon } from './icons';
-import { FileText, BookOpen } from 'lucide-react';
+import { FileText, BookOpen, LifeBuoy } from 'lucide-react';
 
 export function ModeSelection() {
   return (
@@ -68,6 +69,12 @@ export function ModeSelection() {
           </CardFooter>
         </Card>
       </div>
+       <div className="mt-12 text-center">
+          <a href="mailto:techchampion08@gmail.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+            <LifeBuoy className="h-4 w-4" />
+            Contact Support
+          </a>
+        </div>
     </div>
   );
 }
