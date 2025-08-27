@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -7,7 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, Rocket } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface ImproveTabProps {
   selectedSnippet: string;
@@ -64,6 +66,7 @@ export function ImproveTab({ selectedSnippet, onImprovement }: ImproveTabProps) 
         defaultValue="intermediate"
         onValueChange={(v: KnowledgeLevel) => setKnowledgeLevel(v)}
         className="flex space-x-4"
+        disabled={isLoading}
       >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="beginner" id="beginner" />
@@ -79,31 +82,46 @@ export function ImproveTab({ selectedSnippet, onImprovement }: ImproveTabProps) 
         </div>
       </RadioGroup>
 
-      <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-4 min-h-[150px]">
-        <ScrollArea className="h-full">
+      <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-1 min-h-[150px]">
+        <ScrollArea className="h-full p-3">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
         ) : error ? (
-          <div className="text-destructive">{error}</div>
+          <div className="text-destructive text-center py-10">{error}</div>
         ) : result ? (
           <div className="space-y-4">
-            <div>
-              <h4 className="font-semibold mb-2">Improved Code:</h4>
-              <pre className="p-2 text-sm font-code bg-background rounded-md">
-                <code>{result.improvedCode}</code>
-              </pre>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2">Explanation:</h4>
-              <p className="text-sm whitespace-pre-wrap">{result.explanation}</p>
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                        <Rocket className="h-5 w-5 text-primary" />
+                        Improved Code
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <pre className="p-2 text-sm font-code bg-background rounded-md overflow-x-auto">
+                        <code>{result.improvedCode}</code>
+                    </pre>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                        <Lightbulb className="h-5 w-5 text-primary" />
+                        Explanation
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none">{result.explanation}</p>
+                </CardContent>
+            </Card>
           </div>
         ) : (
-          <div className="text-muted-foreground text-center py-10">
-            Improvement suggestions will appear here.
+          <div className="text-muted-foreground text-center py-10 flex flex-col items-center justify-center h-full">
+            <Lightbulb className="h-8 w-8 mb-2" />
+            <p>Improvement suggestions will appear here.</p>
           </div>
         )}
         </ScrollArea>

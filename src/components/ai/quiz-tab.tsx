@@ -86,6 +86,7 @@ export function QuizTab({ fileName, fileContent, onCorrectAnswer }: QuizTabProps
             key={key}
             quiz={quiz}
             onCorrectAnswer={onCorrectAnswer}
+            onQuizComplete={() => {}} // This is handled internally or not needed here
         />
       </div>
     </div>

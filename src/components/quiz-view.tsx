@@ -13,7 +13,7 @@ import type { GenerateQuizOutput } from "@/ai/flows/generate-quiz";
 interface QuizViewProps {
   quiz: GenerateQuizOutput;
   onCorrectAnswer: () => void;
-  onQuizComplete: (score: number, totalQuestions: number) => void;
+  onQuizComplete?: (score: number, totalQuestions: number) => void;
 }
 
 export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProps) {
@@ -39,9 +39,8 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
 
     if (currentQuestionIndex === quiz.questions.length - 1) {
         setIsFinished(true);
-        // Pass the final score to the parent component
         const finalScore = isCorrect ? score + 1 : score;
-        onQuizComplete(finalScore, quiz.questions.length);
+        onQuizComplete?.(finalScore, quiz.questions.length);
     }
   };
   
@@ -50,7 +49,7 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
       setSubmittedAnswers({});
       setScore(0);
       setIsFinished(false);
-      onQuizComplete(0, 0); // Reset score in parent
+      onQuizComplete?.(0, 0); // Reset score in parent
   }
 
   if (isFinished) {
