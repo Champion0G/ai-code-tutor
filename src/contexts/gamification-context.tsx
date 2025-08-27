@@ -1,7 +1,7 @@
 
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/models/user";
 
@@ -41,10 +41,50 @@ const GamificationContext = createContext<GamificationContextType | undefined>(
 
 const LEVEL_XP_BASE = 100;
 
+// Custom hook to get the previous value of a prop or state
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
+
 export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const [isLoaded, setIsLoaded] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+
+  const { level, badges } = user || {};
+  const prevLevel = usePrevious(level);
+  const prevBadges = usePrevious(badges);
+
+  // Effect for showing notifications. This is safer.
+  useEffect(() => {
+    if (isLoaded && user) {
+        // Level up toast
+        if (prevLevel !== undefined && level! > prevLevel) {
+            toast({
+                title: "Level Up!",
+                description: `Congratulations, you've reached Level ${level}!`
+            });
+        }
+
+        // New badge toast
+        if (prevBadges !== undefined && badges!.length > prevBadges.length) {
+            const latestBadgeName = badges![badges!.length - 1];
+            const latestBadge = { name: latestBadgeName, ...badgeDetails[latestBadgeName] };
+            if (latestBadge) {
+                toast({
+                    title: "New Badge Unlocked!",
+                    description: `You've earned the "${latestBadge.name.replace(/_/g, ' ')}" badge!`
+                });
+            }
+        }
+    }
+  }, [level, badges, prevLevel, prevBadges, isLoaded, toast, user]);
+  
 
   useEffect(() => {
     // This ensures that for guests, the app is considered "loaded" and doesn't show skeleton states forever.
@@ -108,10 +148,6 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         newXp -= requiredXp;
         newLevel++;
         requiredXp = calculateLevelUpXp(newLevel);
-        toast({
-            title: "Level Up!",
-            description: `Congratulations, you've reached Level ${newLevel}!`
-        });
     }
 
     const updatedUser = await updateProgressInDb({ level: newLevel, xp: newXp });
@@ -128,10 +164,6 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     
     if(updatedUser) {
         setUser(updatedUser);
-        toast({
-            title: "New Badge Unlocked!",
-            description: `You've earned the "${badgeName.replace(/_/g, ' ')}" badge!`
-        });
     }
   }, [user, toast]);
 
@@ -163,3 +195,4 @@ export const useGamification = () => {
   }
   return context;
 };
+
