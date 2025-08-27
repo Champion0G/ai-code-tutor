@@ -22,6 +22,7 @@ import { CodeAlchemistIcon } from "../icons";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Separator } from "../ui/separator";
 
 const formSchema = z.object({
   name: z.string().min(1, {
@@ -146,6 +147,12 @@ export function SignupForm() {
               Login
             </Link>
           </div>
+          <Separator className="my-4" />
+           <div className="text-center">
+              <Link href="/" className="text-sm text-muted-foreground hover:underline">
+                Back to Home
+              </Link>
+            </div>
         </CardContent>
       </Card>
     </div>

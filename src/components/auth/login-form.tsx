@@ -22,6 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CodeAlchemistIcon } from "../icons";
 import { Loader2 } from "lucide-react";
 import { useGamification } from "@/contexts/gamification-context";
+import { Separator } from "../ui/separator";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -137,6 +138,12 @@ export function LoginForm() {
               Sign up
             </Link>
           </div>
+          <Separator className="my-4" />
+           <div className="text-center">
+              <Link href="/" className="text-sm text-muted-foreground hover:underline">
+                Back to Home
+              </Link>
+            </div>
         </CardContent>
       </Card>
     </div>
