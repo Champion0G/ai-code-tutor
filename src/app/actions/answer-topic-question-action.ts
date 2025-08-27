@@ -1,17 +1,17 @@
 
 'use server';
 
-import { adaptiveAnswerQuestion } from "@/ai/flows/adaptive-answer-question";
+import { answerTopicQuestion } from "@/ai/flows/answer-topic-question";
 import { safeError } from "@/lib/safe-error";
-import type { AdaptiveAnswerQuestionInput, AdaptiveAnswerQuestionOutput } from "@/models/adaptive-answer";
+import type { AnswerTopicQuestionInput, AnswerTopicQuestionOutput } from "@/ai/flows/answer-topic-question";
 
 
 // Re-export the output type for the client
-export type { AdaptiveAnswerQuestionOutput as AnswerTopicQuestionOutput }
+export type { AnswerTopicQuestionOutput }
 
-export async function answerTopicQuestion(input: AdaptiveAnswerQuestionInput) {
+export async function answerTopicQuestionAction(input: AnswerTopicQuestionInput) {
     try {
-        const answer = await adaptiveAnswerQuestion(input);
+        const answer = await answerTopicQuestion(input);
         return { success: true, answer };
     } catch (err) {
         const safe = safeError(err);

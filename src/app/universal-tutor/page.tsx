@@ -388,7 +388,7 @@ function UniversalTutorView() {
           )}
         </div>
       </main>
-      {lesson && <Chatbot lessonContext={lessonContentForContext} userSummary={userSummary} quizScore={quizScore} />}
+      {lesson && <Chatbot lessonContext={lessonContentForContext} />}
     </div>
   );
 }
@@ -398,5 +398,3 @@ export default function UniversalTutorPage() {
     <UniversalTutorView />
   )
 }
-
-    

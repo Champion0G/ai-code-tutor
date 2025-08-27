@@ -4,21 +4,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { MessageSquare, Send, Loader2, X, BrainCircuit } from "lucide-react";
+import { MessageSquare, Send, Loader2, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { CodeAlchemistIcon } from "./icons";
 import { cn } from "@/lib/utils";
-import { Separator } from "./ui/separator";
 
-import { answerTopicQuestion as answerTopicQuestionAction, AnswerTopicQuestionOutput } from "@/app/actions/answer-topic-question-action";
+import { answerTopicQuestionAction, AnswerTopicQuestionOutput } from "@/app/actions/answer-topic-question-action";
 
 
 interface ChatbotProps {
   lessonContext: string;
-  userSummary: string;
-  quizScore: { score: number, total: number } | null;
 }
 
 interface Message {
@@ -27,7 +24,7 @@ interface Message {
   isUser: boolean;
 }
 
-export default function Chatbot({ lessonContext, userSummary, quizScore }: ChatbotProps) {
+export default function Chatbot({ lessonContext }: ChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -47,47 +44,32 @@ export default function Chatbot({ lessonContext, userSummary, quizScore }: Chatb
     }
   }, [messages, isLoading]);
 
-  const handleSend = async (messageText: string, isSocratic: boolean = false) => {
-    if (!messageText.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim()) return;
 
-    const userMessage: Message = { id: Date.now(), text: messageText, isUser: true };
+    const userMessage: Message = { id: Date.now(), text: input, isUser: true };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
     setIsLoading(true);
 
     try {
-        let question = messageText;
-        if(isSocratic) {
-            question = `Ask me a Socratic question about the topic based on my initial question: "${messageText}". Guide me to discover the answer myself without giving it away directly. Start by asking a clarifying question.`
-        }
+      const response = await answerTopicQuestionAction({ lessonContent: lessonContext, userQuestion: currentInput });
 
-        const response = await answerTopicQuestionAction({ 
-            lessonContent: lessonContext, 
-            userQuestion: question,
-            userSummary: userSummary,
-            quizScore: quizScore,
-        });
+      if (!response.success) {
+          throw new Error(response.message);
+      }
 
-        if (!response.success) {
-            throw new Error(response.message);
-        }
-
-        const aiMessage: Message = { id: Date.now() + 1, text: response.answer, isUser: false };
-        setMessages(prev => [...prev, aiMessage]);
+      const aiMessage: Message = { id: Date.now() + 1, text: response.answer, isUser: false };
+      setMessages(prev => [...prev, aiMessage]);
     } catch(e: any) {
-        console.error("Chatbot error:", e);
-        const errorMessage: Message = { id: Date.now() + 1, text: "Sorry, I encountered an error. Please try again.", isUser: false };
-        setMessages(prev => [...prev, errorMessage]);
+      console.error("Chatbot error:", e);
+      const errorMessage: Message = { id: Date.now() + 1, text: "Sorry, I encountered an error. Please try again.", isUser: false };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
-
-  const handleSocraticPrompt = () => {
-    const socraticInput = input || "this topic";
-    handleSend(`Help me understand ${socraticInput} more deeply.`, true);
-  };
-
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -159,13 +141,8 @@ export default function Chatbot({ lessonContext, userSummary, quizScore }: Chatb
                 )}
             </div>
         </ScrollArea>
-        <footer className="p-4 border-t space-y-3">
-            <Button variant="outline" size="sm" className="w-full" onClick={handleSocraticPrompt} disabled={isLoading}>
-                <BrainCircuit className="mr-2 h-4 w-4" />
-                Guide me (Socratic Method)
-            </Button>
-            <Separator />
-            <form onSubmit={(e) => { e.preventDefault(); handleSend(input); }} className="flex items-center gap-2">
+        <footer className="p-4 border-t">
+            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-center gap-2">
                 <Input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -182,5 +159,3 @@ export default function Chatbot({ lessonContext, userSummary, quizScore }: Chatb
     </Popover>
   );
 }
-
-    
