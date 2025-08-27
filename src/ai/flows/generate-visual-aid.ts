@@ -75,5 +75,3 @@ const generateVisualAidFlow = ai.defineFlow(
     return { imageUrl: media.url };
   }
 );
-
-    
