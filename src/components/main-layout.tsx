@@ -109,17 +109,6 @@ export function MainLayout() {
     return null;
   };
 
-  // Set initial active file or fetch content for GitHub import
-  useEffect(() => {
-    if (!activeFile && fileTree.length > 0) {
-        const firstFile = findFirstFile(fileTree);
-        if (firstFile) {
-            handleFileSelect(firstFile);
-        }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileTree]);
-
   const saveTreeToLocalStorage = (tree: FileNode[]) => {
       try {
           // Create a deep copy of the tree and remove file content before saving
