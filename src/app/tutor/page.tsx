@@ -201,7 +201,7 @@ function TutorView() {
                             <CardTitle className="text-xl flex items-center gap-2"><Brain className="h-5 w-5" />Deeper Dive</CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <div className="prose prose-base max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: furtherExplanation.replace(/\n/g, '<br />') }}/>
+                            <div className="prose prose-base max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: furtherExplanation.replace(/\\n/g, '<br />') }}/>
                           </CardContent>
                         </Card>
                       )}
