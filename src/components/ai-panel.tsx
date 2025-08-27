@@ -35,14 +35,21 @@ export function AiPanel({
   return (
     <Card className="h-full">
       <CardContent className="p-4 h-full">
-        <Tabs defaultValue="explain" className="flex flex-col h-full">
+        <Tabs defaultValue="summary" className="flex flex-col h-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+            <TabsTrigger value="summary">Summary</TabsTrigger>
             <TabsTrigger value="explain">Explain</TabsTrigger>
             <TabsTrigger value="improve">Improve</TabsTrigger>
-            <TabsTrigger value="summary">Summary</TabsTrigger>
             <TabsTrigger value="quiz">Quiz</TabsTrigger>
           </TabsList>
           <div className="flex-1 overflow-hidden mt-4">
+              <TabsContent value="summary" className="h-full m-0">
+                <SummaryTab
+                  fileContent={fileContent}
+                  fileName={fileName}
+                  onSummary={() => handleActionSuccess(15, "Archivist")}
+                />
+              </TabsContent>
               <TabsContent value="explain" className="h-full m-0">
                 <ExplainTab
                   selectedSnippet={selectedSnippet}
@@ -53,13 +60,6 @@ export function AiPanel({
                 <ImproveTab
                   selectedSnippet={selectedSnippet}
                   onImprovement={() => handleActionSuccess(25, "Code_Optimizer")}
-                />
-              </TabsContent>
-              <TabsContent value="summary" className="h-full m-0">
-                <SummaryTab
-                  fileContent={fileContent}
-                  fileName={fileName}
-                  onSummary={() => handleActionSuccess(15, "Archivist")}
                 />
               </TabsContent>
               <TabsContent value="quiz" className="h-full m-0">
