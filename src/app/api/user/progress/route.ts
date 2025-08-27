@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     // 3. Update user in database
     const client = await clientPromise;
-    const db = client.db();
+    const db = client.db("ai-code-tutor");
 
     const result = await db.collection('users').updateOne(
       { _id: new ObjectId(userId) },

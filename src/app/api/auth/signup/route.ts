@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: 'Database connection failed.', error: error.message }, { status: 500 });
     }
     
-    const db = client.db();
+    const db = client.db("ai-code-tutor");
 
     // 2. Check for existing user
     try {
