@@ -31,7 +31,7 @@ function getClient(): Redis | null {
  * @param obj The object to hash.
  * @returns A SHA-256 hash string.
  */
-export function hash(obj: any): string {
+function hash(obj: any): string {
   const str = JSON.stringify(obj, Object.keys(obj).sort());
   return createHash('sha256').update(str).digest('hex');
 }
@@ -97,7 +97,5 @@ export const memory = {
     }
 }
 
-// Use Redis if available, otherwise fall back to in-memory cache.
-const cache = getClient() ? { get, set, hash } : { get: memory.get, set: memory.set, hash };
-export default cache;
-
+const exportedCache = getClient() ? { get, set, hash } : { get: memory.get, set: memory.set, hash };
+export default exportedCache;
