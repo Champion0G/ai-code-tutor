@@ -5,6 +5,8 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { ObjectId } from 'mongodb';
 
+// Re-encoding the secret key each time can be problematic.
+// Let's define it once, ensuring it's handled correctly.
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export async function POST(req: Request) {
@@ -17,8 +19,10 @@ export async function POST(req: Request) {
     
     let decoded;
     try {
+      // Correctly await the jwtVerify promise
       decoded = await jwtVerify(token, JWT_SECRET);
     } catch (err) {
+      console.error('JWT Verification Error:', err);
       return NextResponse.json({ message: 'Invalid token.' }, { status: 401 });
     }
     
