@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, RefreshCcw } from 'lucide-react';
 import { Header } from '@/components/header';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,6 +15,7 @@ import type { GenerateQuizOutput } from '@/ai/flows/generate-quiz';
 import { QuizView } from '@/components/quiz-view';
 import { useGamification } from '@/contexts/gamification-context';
 import Chatbot from '@/components/chatbot';
+import { Textarea } from '@/components/ui/textarea';
 
 import { generateLessonAction } from '@/app/actions/generate-lesson-action';
 import { generateQuizAction } from '@/app/actions/generate-quiz-action';
@@ -225,6 +226,28 @@ function UniversalTutorView() {
 
                     <Separator />
 
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Teach it Back!</CardTitle>
+                            <CardDescription>One of the best ways to learn is to teach. Summarize what you just learned in your own words to solidify your understanding.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <form className='space-y-4' onSubmit={(e) => {
+                                e.preventDefault();
+                                // This would be where you submit the summary to an AI for feedback
+                                alert("Feedback functionality coming soon!");
+                            }}>
+                                <Textarea 
+                                    placeholder="Explain the main concepts here..."
+                                    rows={5}
+                                />
+                                <Button>Get Feedback on my Summary</Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+
+                    <Separator />
+
                     {quiz ? (
                         <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
                     ) : (
@@ -250,3 +273,5 @@ export default function UniversalTutorPage() {
     <UniversalTutorView />
   )
 }
+
+    

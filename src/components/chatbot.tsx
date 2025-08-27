@@ -54,7 +54,7 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
     try {
         let question = messageText;
         if(isSocratic) {
-            question = `Ask me a Socratic question about the following topic to help me think more deeply. My initial question is: "${messageText}". Guide me to the answer without giving it away directly.`
+            question = `Ask me a Socratic question about the topic based on my initial question: "${messageText}". Guide me to discover the answer myself without giving it away directly. Start by asking a clarifying question.`
         }
 
         const response = await answerTopicQuestion({ lessonContent: lessonContext, userQuestion: question });
@@ -70,7 +70,8 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
   };
 
   const handleSocraticPrompt = () => {
-    handleSend("What's one thing I might be misunderstanding about this topic?", true);
+    const socraticInput = input || "this topic";
+    handleSend(`Help me understand ${socraticInput} more deeply.`, true);
   };
 
 
@@ -147,7 +148,7 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
         <footer className="p-4 border-t space-y-3">
             <Button variant="outline" size="sm" className="w-full" onClick={handleSocraticPrompt} disabled={isLoading}>
                 <BrainCircuit className="mr-2 h-4 w-4" />
-                Help me think deeper (Socratic Method)
+                Guide me (Socratic Method)
             </Button>
             <Separator />
             <form onSubmit={(e) => { e.preventDefault(); handleSend(input); }} className="flex items-center gap-2">
