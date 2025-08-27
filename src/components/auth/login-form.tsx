@@ -2,7 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -34,7 +33,6 @@ const formSchema = z.object({
 });
 
 export function LoginForm() {
-  const router = useRouter();
   const { toast } = useToast();
   const { loadInitialData } = useGamification();
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +69,9 @@ export function LoginForm() {
       loadInitialData(data.user);
 
       // Redirect to the explainer page after successful login
-      router.push('/explainer');
+      // Use window.location.href to force a full page reload, ensuring
+      // all contexts and server-side checks are re-run with the new auth state.
+      window.location.href = '/explainer';
 
     } catch (error: any) {
       toast({
