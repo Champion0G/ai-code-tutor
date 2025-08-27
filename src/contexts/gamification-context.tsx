@@ -64,7 +64,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
 
   // Effect for level-up & new badge toasts
   useEffect(() => {
-    // Ensure we don't fire toasts on the initial load before data is settled.
+    // Do not run on initial render or if data hasn't loaded yet.
     if (!isLoaded) return;
   
     // Level up toast
@@ -78,7 +78,6 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     // New badge toast
     if (prevBadges !== undefined && badges.length > prevBadges.length) {
         const latestBadge = badges[badges.length - 1];
-        // Extra safe check to ensure latestBadge is not undefined.
         if (latestBadge && latestBadge.name) {
             toast({
                 title: "New Badge Unlocked!",
@@ -113,10 +112,11 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // Handles the case for guest users who are not logged in.
+    // If after a short delay, `isLoaded` is still false, it means no user data was loaded,
+    // so we set it to true to unblock the UI.
     const timer = setTimeout(() => {
         if (!isLoaded) {
-          // If after 1 second, we still haven't loaded data (i.e., no logged-in user),
-          // we set the state to loaded for guest users.
           setIsLoaded(true);
         }
     }, 1000);
@@ -145,27 +145,27 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   }, [toast, email]);
 
   const addXp = useCallback((amount: number) => {
-    if (!email) return;
+    if (!email) return; // Only signed-in users can gain XP
     setXp(currentXp => {
         let newXp = currentXp + amount;
-        let newLevel = level;
-        let newLevelUpXp = levelUpXp;
+        let currentLevel = level;
+        let currentLevelUpXp = levelUpXp;
 
-        while (newXp >= newLevelUpXp) {
-          newXp -= newLevelUpXp;
-          newLevel++;
-          newLevelUpXp = Math.floor(calculateLevelDetails(newLevel));
+        while (newXp >= currentLevelUpXp) {
+          newXp -= currentLevelUpXp;
+          currentLevel++;
+          currentLevelUpXp = Math.floor(calculateLevelDetails(currentLevel));
         }
         
-        setLevel(newLevel);
-        setLevelUpXp(newLevelUpXp);
-        updateProgressInDb({ level: newLevel, xp: newXp, badges: badges.map(b => b.name) });
+        setLevel(currentLevel);
+        setLevelUpXp(currentLevelUpXp);
+        updateProgressInDb({ level: currentLevel, xp: newXp, badges: badges.map(b => b.name) });
         return newXp;
     });
   }, [level, levelUpXp, badges, updateProgressInDb, email]);
 
   const addBadge = useCallback((name: BadgeName) => {
-    if (!email) return;
+    if (!email) return; // Only signed-in users can earn badges
     setBadges(currentBadges => {
       if (!currentBadges.some(b => b.name === name)) {
         const newBadges = [...currentBadges, { name, ...badgeDetails[name] }];
