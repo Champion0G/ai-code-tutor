@@ -62,25 +62,28 @@ export function ImproveTab({ selectedSnippet, onImprovement }: ImproveTabProps) 
         </p>
       </div>
 
-      <RadioGroup
-        defaultValue="intermediate"
-        onValueChange={(v: KnowledgeLevel) => setKnowledgeLevel(v)}
-        className="flex space-x-4 flex-shrink-0"
-        disabled={isLoading}
-      >
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="beginner" id="beginner" />
-          <Label htmlFor="beginner">Beginner</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="intermediate" id="intermediate" />
-          <Label htmlFor="intermediate">Intermediate</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="advanced" id="advanced" />
-          <Label htmlFor="advanced">Advanced</Label>
-        </div>
-      </RadioGroup>
+      <div className="flex-shrink-0">
+        <RadioGroup
+          defaultValue="intermediate"
+          onValueChange={(v: KnowledgeLevel) => setKnowledgeLevel(v)}
+          className="flex space-x-4"
+          disabled={isLoading}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="beginner" id="beginner" />
+            <Label htmlFor="beginner">Beginner</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="intermediate" id="intermediate" />
+            <Label htmlFor="intermediate">Intermediate</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="advanced" id="advanced" />
+            <Label htmlFor="advanced">Advanced</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
 
       <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-2 min-h-[150px]">
         <ScrollArea className="h-full p-4">
