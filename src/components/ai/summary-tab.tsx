@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -7,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookText, HelpCircle } from "lucide-react";
+import { Separator } from "../ui/separator";
 
 interface SummaryTabProps {
   fileContent: string;
@@ -58,12 +60,40 @@ export function SummaryTab({ fileContent, fileName, onSummary }: SummaryTabProps
         </p>
       </div>
       
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 space-y-4">
         <Button onClick={() => handleAction(true)} disabled={isLoading || !fileContent} className="w-full">
             <BookText className="mr-2 h-4 w-4" />
             {isLoading && !result ? "Summarizing..." : "Generate File Summary"}
         </Button>
+        
+        <div className="relative">
+            <Separator />
+            <div className="absolute inset-0 flex items-center">
+                <div className="mx-auto bg-card px-2 text-xs text-muted-foreground">OR</div>
+            </div>
+        </div>
+
+        <form
+            onSubmit={(e) => {
+            e.preventDefault();
+            handleAction(false);
+            }}
+            className="flex w-full items-center space-x-2"
+        >
+            <Input
+            type="text"
+            placeholder="Ask a question about the file..."
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            disabled={isLoading}
+            />
+            <Button type="submit" disabled={!question || isLoading || !fileContent}>
+            <HelpCircle className="mr-2 h-4 w-4" />
+            Ask
+            </Button>
+        </form>
       </div>
+
 
       <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-4 min-h-[150px]">
         <ScrollArea className="h-full">
@@ -81,8 +111,9 @@ export function SummaryTab({ fileContent, fileName, onSummary }: SummaryTabProps
               <h4 className="font-semibold mb-2">Summary:</h4>
               <p className="text-sm whitespace-pre-wrap">{result.summary}</p>
             </div>
-            {result.answer && (
+            {result.answer && question && (
               <div>
+                <Separator className="my-4" />
                 <h4 className="font-semibold mb-2">Answer:</h4>
                 <p className="text-sm whitespace-pre-wrap">{result.answer}</p>
               </div>
@@ -96,25 +127,6 @@ export function SummaryTab({ fileContent, fileName, onSummary }: SummaryTabProps
         </ScrollArea>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleAction(false);
-        }}
-        className="flex w-full items-center space-x-2"
-      >
-        <Input
-          type="text"
-          placeholder="Ask a question about the file..."
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          disabled={!result || isLoading}
-        />
-        <Button type="submit" disabled={!question || isLoading}>
-          <HelpCircle className="mr-2 h-4 w-4" />
-          Ask
-        </Button>
-      </form>
     </div>
   );
 }
