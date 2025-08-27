@@ -17,7 +17,7 @@ export type ExplainTopicFurtherInput = z.infer<typeof ExplainTopicFurtherInputSc
 
 const FurtherExplanationSectionSchema = z.object({
   title: z.string().describe('The title of the explanation section.'),
-  content: z.string().describe('The detailed content of this section, formatted as Markdown.'),
+  content: z.string().describe('The detailed content of this section, formatted as well-structured Markdown.'),
   analogy: z.string().optional().describe('A relatable analogy to help understanding.'),
 });
 
@@ -44,6 +44,7 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert programming tutor. A user has requested a more detailed explanation of a lesson you previously provided.
 
 Your task is to break down the topic into more depth, using analogies and clear, well-structured sections. Make it engaging and fun to read, not just a wall of text.
+Use Markdown formatting for the content of each section (e.g., headings, lists, bold text, code blocks) to ensure it is reader-friendly.
 
 Original Lesson Title: {{{lesson.title}}}
 
@@ -58,7 +59,7 @@ Original Lesson Content:
 Now, generate a more detailed, structured explanation based on the above lesson.
 - Create a main title for this "deeper dive".
 - Write a brief introduction.
-- Create at least 3-4 detailed sections. Each section needs a title, detailed content, and a fun, relatable analogy.
+- Create at least 3-4 detailed sections. Each section needs a title, detailed content in Markdown, and a fun, relatable analogy.
 - Write a concluding summary.
 `,
 });
