@@ -9,12 +9,12 @@ import { FileText, BookOpen, LifeBuoy, BrainCircuit } from 'lucide-react';
 
 export function ModeSelection() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-      <div className="flex items-center gap-4 mb-8">
-        <CodeAlchemistIcon className="h-12 w-12 text-primary" />
-        <h1 className="text-4xl font-bold tracking-tighter">Welcome to Code Alchemist</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+      <div className="flex items-center gap-4 mb-8 text-center">
+        <CodeAlchemistIcon className="h-10 w-10 md:h-12 md:w-12 text-primary" />
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tighter">Welcome to Code Alchemist</h1>
       </div>
-      <p className="text-xl text-muted-foreground mb-12 max-w-2xl text-center">
+      <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl text-center">
         Your personal AI-powered code tutor. Choose your learning path below to get started.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full px-4">
