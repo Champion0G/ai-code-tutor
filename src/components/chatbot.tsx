@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { MessageSquare, Send, Loader2, X } from "lucide-react";
@@ -22,12 +22,7 @@ interface Message {
   isUser: boolean;
 }
 
-function formatResponse(response: AnswerTopicQuestionOutput): string {
-    const sections = response.sections.map(s => `### ${s.title}\n${s.content}${s.analogy ? `\n\n**Analogy:** ${s.analogy}` : ''}`).join('\n\n');
-    return `## ${response.title}\n\n${response.introduction}\n\n${sections}\n\n${response.conclusion}`;
-}
-
-export function Chatbot({ lessonContext }: ChatbotProps) {
+export default function Chatbot({ lessonContext }: ChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -142,3 +137,5 @@ export function Chatbot({ lessonContext }: ChatbotProps) {
     </Popover>
   );
 }
+
+    

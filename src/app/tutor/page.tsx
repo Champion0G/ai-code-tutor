@@ -16,7 +16,7 @@ import { Header } from '@/components/header';
 import { QuizView } from '@/components/quiz-view';
 import { useGamification } from '@/contexts/gamification-context';
 import { Separator } from '@/components/ui/separator';
-import { Chatbot } from '@/components/chatbot';
+import Chatbot from '@/components/chatbot';
 
 function TutorView() {
   const [topic, setTopic] = useState('');
