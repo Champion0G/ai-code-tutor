@@ -12,21 +12,26 @@ import { generateLesson } from '@/ai/flows/generate-lesson';
 import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
 import type { GenerateLessonOutput } from '@/models/lesson';
 import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
+import { answerTopicQuestion, AnswerTopicQuestionOutput } from '@/ai/flows/answer-topic-question';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/header';
 import { QuizView } from '@/components/quiz-view';
 import { useGamification } from '@/contexts/gamification-context';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 function TutorView() {
   const [topic, setTopic] = useState('');
   const [lesson, setLesson] = useState<GenerateLessonOutput | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
   const [furtherExplanation, setFurtherExplanation] = useState<ExplainTopicFurtherOutput | null>(null);
+  const [userQuestion, setUserQuestion] = useState("");
+  const [questionAnswer, setQuestionAnswer] = useState<AnswerTopicQuestionOutput | null>(null);
 
   const [isLoadingLesson, setIsLoadingLesson] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
@@ -44,6 +49,8 @@ function TutorView() {
     setLesson(null);
     setQuiz(null);
     setFurtherExplanation(null);
+    setQuestionAnswer(null);
+    setUserQuestion("");
 
     try {
       const result = await generateLesson({ topic });
@@ -88,6 +95,25 @@ function TutorView() {
       console.error(e);
     } finally {
       setIsLoadingExplanation(false);
+    }
+  };
+
+  const handleAskQuestion = async () => {
+    if (!lesson || !userQuestion) return;
+
+    setIsLoadingQuestion(true);
+    setError(null);
+    setQuestionAnswer(null);
+
+    try {
+      const lessonContent = `Title: ${lesson.title}\\nIntroduction: ${lesson.introduction}\\n${lesson.keyConcepts.map(c => `Concept: ${c.title}\\n${c.explanation}`).join('\\n\\n')}\\nConclusion: ${lesson.conclusion}`;
+      const result = await answerTopicQuestion({ lessonContent, userQuestion });
+      setQuestionAnswer(result);
+    } catch (e) {
+      setError('Failed to get an answer. Please try again.');
+      console.error(e);
+    } finally {
+      setIsLoadingQuestion(false);
     }
   };
 
@@ -200,16 +226,47 @@ function TutorView() {
                         </div>
                       )}
 
+                      {questionAnswer && (
+                        <Card className="bg-muted/50">
+                           <CardHeader>
+                               <CardTitle className="text-xl flex items-center gap-3"><HelpCircle className="h-6 w-6 text-primary" /> Your Question</CardTitle>
+                           </CardHeader>
+                           <CardContent>
+                                <div className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{questionAnswer.answer}</div>
+                           </CardContent>
+                        </Card>
+                      )}
+
                       <Card>
                         <CardHeader>
                             <CardTitle className="text-xl">Still Curious?</CardTitle>
                             <CardDescription>Use the options below to explore the topic further.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <Button onClick={handleExplainFurther} disabled={isLoadingExplanation} className="w-full sm:w-auto">
-                            {isLoadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
-                            {isLoadingExplanation ? 'Expanding...' : 'Explain Further'}
-                          </Button>
+                          <div className='flex items-start flex-wrap gap-4'>
+                            <Button onClick={handleExplainFurther} disabled={isLoadingExplanation} className="w-full sm:w-auto">
+                              {isLoadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
+                              {isLoadingExplanation ? 'Expanding...' : 'Explain Further'}
+                            </Button>
+                          </div>
+
+                          <Separator />
+                          
+                          <form onSubmit={(e) => {e.preventDefault(); handleAskQuestion(); }} className="space-y-2">
+                             <Label htmlFor="user-question">Ask a specific question</Label>
+                             <Textarea
+                                id="user-question"
+                                placeholder="e.g., 'What's the difference between let and var in this context?'"
+                                value={userQuestion}
+                                onChange={(e) => setUserQuestion(e.target.value)}
+                                disabled={isLoadingQuestion}
+                             />
+                             <Button type="submit" disabled={isLoadingQuestion || !userQuestion}>
+                                {isLoadingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
+                                {isLoadingQuestion ? 'Thinking...' : 'Get Answer'}
+                             </Button>
+                          </form>
+
                         </CardContent>
                       </Card>
 
