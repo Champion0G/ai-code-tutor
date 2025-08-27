@@ -148,12 +148,12 @@ export function LoginForm() {
           </div>
           <Separator className="my-4" />
             <div className="text-center space-y-2">
-              <Link href="/" className="text-sm text-muted-foreground hover:underline block">
-                Back to Home
-              </Link>
-              <a href="mailto:techchampion08@gmail.com" className="text-sm text-muted-foreground hover:underline block">
-                Contact Support
-              </a>
+              <Button asChild variant="link" className="text-muted-foreground p-0 h-auto">
+                <Link href="/">Back to Home</Link>
+              </Button>
+               <Button asChild variant="link" className="text-muted-foreground p-0 h-auto block mx-auto">
+                 <a href="mailto:techchampion08@gmail.com">Contact Support</a>
+               </Button>
             </div>
         </CardContent>
       </Card>
