@@ -17,6 +17,8 @@ import { AiPanel } from "@/components/ai-panel";
 import { getFileContent } from "@/ai/flows/get-file-content";
 import { useToast } from "@/hooks/use-toast";
 
+const LOCAL_STORAGE_KEY = 'code-alchemist-file-tree';
+
 // Helper function to build a file tree from a flat list of files
 function buildFileTree(files: File[]): Promise<FileNode[]> {
   const filePromises = files.map(file => {
@@ -60,82 +62,77 @@ function buildFileTree(files: File[]): Promise<FileNode[]> {
                     node.content = content;
                 }
                 nodeMap[currentPath] = node;
-                parentNode.children!.push(node);
+                if(parentNode && parentNode.children) {
+                    parentNode.children!.push(node);
+                } else {
+                    // This handles the case where the path doesn't have a parent in the map
+                    root.children!.push(node);
+                }
             }
         });
     });
     
-    // If the root is a single folder, we return its children for a cleaner tree
-    if (root.children && root.children.length === 1 && root.children[0].type === 'folder') {
-        const singleRoot = root.children[0];
-        // Handle cases where the root folder might just contain other folders
-        const processedChildren = singleRoot.children?.map(child => {
-            const newPath = child.path.substring(singleRoot.name.length + 1);
-            
-            const updatePaths = (node: FileNode, basePath: string): FileNode => {
-                const relativePath = node.path.substring(basePath.length + 1);
-                const newNode = { ...node, path: relativePath };
-                if (newNode.children) {
-                    newNode.children = newNode.children.map(c => updatePaths(c, basePath));
-                }
-                return newNode;
-            }
-
-            return updatePaths(child, singleRoot.name);
-        });
-
-        // If the uploaded folder has a simple structure, the original logic might be better
-        if(processedChildren && processedChildren.every(c => !c.path.includes('/'))) {
-             return singleRoot.children || [];
-        }
-       
-        // This is complex, let's stick to the simpler version that was working before the last change
-        return root.children || [];
-    }
-
     return root.children || [];
   });
 }
 
 
 export function MainLayout() {
-  const [fileTree, setFileTree] = useState<FileNode[]>(initialFileTree);
+  const [fileTree, setFileTree] = useState<FileNode[]>([]);
   const [activeFile, setActiveFile] = useState<FileNode | null>(null);
   const [selectedSnippet, setSelectedSnippet] = useState<string>("");
   const { toast } = useToast();
 
+  // Load initial file tree from localStorage or use mock data
   useEffect(() => {
-    // Set initial active file from the file tree
-    const findFirstFile = (nodes: FileNode[]): FileNode | null => {
-        for(const node of nodes) {
-            if(node.type === 'file' && node.content) return node;
-            if(node.children) {
-                const found = findFirstFile(node.children);
-                if (found) return found;
-            }
+    try {
+        const savedTree = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedTree) {
+            setFileTree(JSON.parse(savedTree));
+        } else {
+            setFileTree(initialFileTree);
         }
-        return null;
+    } catch (error) {
+        console.error("Failed to load from localStorage", error);
+        setFileTree(initialFileTree);
     }
-    const firstFile = findFirstFile(fileTree);
-    if(firstFile) {
-        setActiveFile(firstFile);
-    } else {
-        // If no file has content (e.g., from a fresh GitHub import),
-        // select the first file found but don't expect content yet.
-        const findAnyFirstFile = (nodes: FileNode[]): FileNode | null => {
-            for(const node of nodes) {
-                if(node.type === 'file') return node;
-                if(node.children) {
-                    const found = findAnyFirstFile(node.children);
-                    if (found) return found;
-                }
-            }
-            return null;
-        }
-        setActiveFile(findAnyFirstFile(fileTree));
-    }
-  }, [fileTree])
+  }, []);
 
+  const findFirstFile = (nodes: FileNode[]): FileNode | null => {
+    for(const node of nodes) {
+        if(node.type === 'file') return node;
+        if(node.children) {
+            const found = findFirstFile(node.children);
+            if (found) return found;
+        }
+    }
+    return null;
+  };
+
+  // Set initial active file or fetch content for GitHub import
+  useEffect(() => {
+    if (!activeFile && fileTree.length > 0) {
+        const firstFile = findFirstFile(fileTree);
+        if (firstFile) {
+            handleFileSelect(firstFile);
+        }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileTree]);
+
+  const saveTreeToLocalStorage = (tree: FileNode[]) => {
+      try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tree));
+      } catch (error) {
+          console.error("Failed to save to localStorage", error);
+          toast({
+              variant: "destructive",
+              title: "Could not save project",
+              description: "The browser's local storage might be full."
+          })
+      }
+  }
+  
   const handleFileSelect = useCallback(async (file: FileNode) => {
     if (file.type === "file") {
         if (!file.content && file.path.startsWith('https://api.github.com')) {
@@ -156,7 +153,12 @@ export function MainLayout() {
                 };
                 
                 const newFileWithContent = { ...file, content };
-                setFileTree(prevTree => updateFileContent(prevTree, file.path, content));
+                
+                setFileTree(prevTree => {
+                    const updatedTree = updateFileContent(prevTree, file.path, content);
+                    saveTreeToLocalStorage(updatedTree);
+                    return updatedTree;
+                });
                 setActiveFile(newFileWithContent);
 
             } catch (error) {
@@ -186,6 +188,8 @@ export function MainLayout() {
   const handleFolderUpload = async (files: File[]) => {
     const newFileTree = await buildFileTree(files);
     setFileTree(newFileTree);
+    setActiveFile(null); // Reset active file
+    saveTreeToLocalStorage(newFileTree);
   };
 
   const handleFileUpload = (file: File) => {
@@ -198,16 +202,31 @@ export function MainLayout() {
             path: file.name,
             content: content
         };
-        // Replace entire tree with the single file
-        setFileTree([newFileNode]);
+        const newTree = [newFileNode];
+        setFileTree(newTree);
         setActiveFile(newFileNode);
+        saveTreeToLocalStorage(newTree);
     }
     reader.readAsText(file);
   }
 
   const handleRepoImport = (newFileTree: FileNode[]) => {
     setFileTree(newFileTree);
+    setActiveFile(null); // Reset active file
+    saveTreeToLocalStorage(newFileTree);
   };
+
+  const handleReset = () => {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      setFileTree(initialFileTree);
+      setActiveFile(null);
+      const firstFile = findFirstFile(initialFileTree);
+      if(firstFile) setActiveFile(firstFile);
+      toast({
+          title: "Project Reset",
+          description: "The file explorer has been reset to the default example."
+      });
+  }
 
   return (
     <SidebarProvider>
@@ -219,6 +238,7 @@ export function MainLayout() {
             onFileUpload={handleFileUpload}
             onFolderUpload={handleFolderUpload}
             onRepoImport={handleRepoImport}
+            onReset={handleReset}
         />
       </Sidebar>
       <SidebarInset>

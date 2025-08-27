@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { FolderIcon, FileIcon, ChevronRightIcon, Upload, FolderUp, Github, Loader2 } from "lucide-react";
+import { FolderIcon, FileIcon, ChevronRightIcon, Upload, FolderUp, Github, Loader2, History } from "lucide-react";
 import { CodeAlchemistIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ interface FileExplorerProps {
   onFileUpload: (file: File) => void;
   onFolderUpload: (files: File[]) => void;
   onRepoImport: (files: FileNode[]) => void;
+  onReset: () => void;
 }
 
 const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNode, onFileSelect: (file: FileNode) => void, activeFile: FileNode | null, level: number }) => {
@@ -92,7 +93,7 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
   );
 };
 
-export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, onFolderUpload, onRepoImport }: FileExplorerProps) {
+export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, onFolderUpload, onRepoImport, onReset }: FileExplorerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [repoUrl, setRepoUrl] = useState("");
@@ -215,6 +216,12 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
             </div>
         </div>
         <SidebarSeparator className="my-2" />
+        <div className="flex justify-end mb-2">
+            <Button variant="ghost" size="sm" onClick={onReset}>
+                <History className="mr-2 h-4 w-4" />
+                Clear History & Reset
+            </Button>
+        </div>
         <div className="flex-1 overflow-auto">
             <SidebarMenu>
             {files.map((node) => (
