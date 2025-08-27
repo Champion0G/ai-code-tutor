@@ -2,8 +2,9 @@
 'use server';
 
 import { adaptiveAnswerQuestion } from "@/ai/flows/adaptive-answer-question";
-import type { AdaptiveAnswerQuestionInput, AdaptiveAnswerQuestionOutput } from "@/ai/flows/adaptive-answer-question";
 import { safeError } from "@/lib/safe-error";
+import type { AdaptiveAnswerQuestionInput, AdaptiveAnswerQuestionOutput } from "@/models/adaptive-answer";
+
 
 // Re-export the output type for the client
 export type { AdaptiveAnswerQuestionOutput as AnswerTopicQuestionOutput }
@@ -18,5 +19,3 @@ export async function answerTopicQuestion(input: AdaptiveAnswerQuestionInput) {
         return { success: false, message: safe.message };
     }
 }
-
-    
