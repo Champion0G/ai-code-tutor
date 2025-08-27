@@ -1,7 +1,7 @@
 
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export type BadgeIconType = 'Star' | 'Zap' | 'BrainCircuit' | 'Award';
@@ -49,11 +49,13 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   const [level, setLevel] = useState(1);
   const [levelUpXp, setLevelUpXp] = useState(LEVEL_XP_BASE);
   const [badges, setBadges] = useState<Badge[]>([]);
+  const isInitialLoad = useRef(true);
+
 
   // Effect for level-up toast
   useEffect(() => {
     // Don't show toast on initial load or if user is not logged in
-    if (!isLoaded || level === 1 || !email) return;
+    if (!isLoaded || isInitialLoad.current || !email) return;
     toast({
         title: "Level Up!",
         description: `Congratulations, you've reached Level ${level}!`
@@ -63,11 +65,11 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
 
   // Effect for new badge toast
   useEffect(() => {
-    // Don't show toast on initial load or if user is not logged in
-    if (!isLoaded || badges.length === 0 || !email) return;
+    // Don't show on initial load or if the user is not logged in.
+    if (!isLoaded || isInitialLoad.current || !email) return;
+
     const latestBadge = badges[badges.length - 1];
     
-    // Add a check to ensure latestBadge is not undefined
     if (latestBadge) {
         toast({
             title: "New Badge Unlocked!",
@@ -83,14 +85,18 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const loadInitialData = useCallback((data: { name: string, email: string, level: number, xp: number, badges: BadgeName[]}) => {
+    isInitialLoad.current = true; // Mark the start of loading initial data
     setName(data.name);
     setEmail(data.email);
     setLevel(data.level);
     setXp(data.xp);
     setBadges(data.badges.map(name => ({ name, ...badgeDetails[name] })));
     setLevelUpXp(Math.floor(calculateLevelDetails(data.level)));
-    // Set isLoaded to true after a short delay to prevent initial toasts
-    setTimeout(() => setIsLoaded(true), 500);
+    setIsLoaded(true);
+    // Use a timeout to flip the initial load flag after the first render cycle
+    setTimeout(() => {
+      isInitialLoad.current = false;
+    }, 500);
   }, []);
 
   const resetContext = useCallback(() => {
@@ -111,12 +117,14 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     const timer = setTimeout(() => {
         if (!isLoaded) {
             setIsLoaded(true);
+            isInitialLoad.current = false;
         }
     }, 1000); // 1 second delay
     return () => clearTimeout(timer);
   }, [isLoaded])
 
   const updateProgressInDb = useCallback(async (updatedProgress: { level: number, xp: number, badges: BadgeName[] }) => {
+      if(!email) return; // Do not save progress for guest users
       try {
         const response = await fetch('/api/user/progress', {
             method: 'POST',
@@ -134,43 +142,39 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
               description: "Could not save your progress to the server."
           })
       }
-  }, [toast]);
+  }, [toast, email]);
 
   const addXp = useCallback((amount: number) => {
     if (!email) return; // Don't add XP for guest users
-    let newXp = xp + amount;
-    let newLevel = level;
-    let newLevelUpXp = levelUpXp;
+    setXp(currentXp => {
+        let newXp = currentXp + amount;
+        let newLevel = level;
+        let newLevelUpXp = levelUpXp;
 
-    while (newXp >= newLevelUpXp) {
-      newXp -= newLevelUpXp;
-      newLevel++;
-      newLevelUpXp = Math.floor(calculateLevelDetails(newLevel));
-    }
-    
-    setXp(newXp);
-
-    if (newLevel > level) {
-        setLevel(newLevel);
-    }
-    
-    setLevelUpXp(newLevelUpXp);
-    
-    if (isLoaded && email) {
-      updateProgressInDb({ level: newLevel, xp: newXp, badges: badges.map(b => b.name) });
-    }
-  }, [xp, level, levelUpXp, isLoaded, badges, updateProgressInDb, email]);
+        while (newXp >= newLevelUpXp) {
+          newXp -= newLevelUpXp;
+          newLevel++;
+          newLevelUpXp = Math.floor(calculateLevelDetails(newLevel));
+        }
+        
+        if (newLevel > level) {
+            setLevel(newLevel);
+        }
+        
+        setLevelUpXp(newLevelUpXp);
+        updateProgressInDb({ level: newLevel, xp: newXp, badges: badges.map(b => b.name) });
+        return newXp;
+    });
+  }, [level, levelUpXp, badges, updateProgressInDb, email]);
 
   const addBadge = useCallback((name: BadgeName) => {
     if (!email) return; // Don't add badges for guest users
     if (!badges.some(b => b.name === name)) {
       const newBadges = [...badges, { name, ...badgeDetails[name] }];
       setBadges(newBadges);
-      if(isLoaded && email) {
-        updateProgressInDb({ level, xp, badges: newBadges.map(b => b.name) });
-      }
+      updateProgressInDb({ level, xp, badges: newBadges.map(b => b.name) });
     }
-  }, [badges, level, xp, isLoaded, updateProgressInDb, email]);
+  }, [badges, level, xp, updateProgressInDb, email]);
 
   return (
     <GamificationContext.Provider
