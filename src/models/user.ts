@@ -14,4 +14,6 @@ export interface User {
   badges: BadgeName[];
   createdAt: Date;
   updatedAt: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
