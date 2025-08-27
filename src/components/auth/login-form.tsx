@@ -147,7 +147,7 @@ export function LoginForm() {
             </Link>
           </div>
           <Separator className="my-4" />
-           <div className="text-center space-y-2">
+            <div className="text-center space-y-2">
               <Link href="/" className="text-sm text-muted-foreground hover:underline block">
                 Back to Home
               </Link>
