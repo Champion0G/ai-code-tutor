@@ -51,7 +51,7 @@ export default function Home() {
             </Button>
           </div>
         ) : (
-          <div className="space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button asChild variant="outline" size="sm">
                 <Link href="/login">Login</Link>
             </Button>
