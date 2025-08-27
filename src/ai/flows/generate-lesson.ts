@@ -28,7 +28,7 @@ const KeyConceptSchema = z.object({
   codeExplanation: z.string().optional().describe('A brief explanation of the code example.'),
 });
 
-const GenerateLessonOutputSchema = z.object({
+export const GenerateLessonOutputSchema = z.object({
   title: z.string().describe('A suitable title for the lesson.'),
   introduction: z
     .string()
