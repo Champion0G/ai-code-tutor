@@ -1,5 +1,4 @@
 
-'use server';
 
 import { createHash } from 'crypto';
 import Redis from 'ioredis';
