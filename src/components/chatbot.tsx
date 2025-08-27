@@ -7,14 +7,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { MessageSquare, Send, Loader2, X, BrainCircuit } from "lucide-react";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
-import { answerTopicQuestion, AnswerTopicQuestionOutput } from "@/ai/flows/answer-topic-question";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { CodeAlchemistIcon } from "./icons";
 import { cn } from "@/lib/utils";
 import { Separator } from "./ui/separator";
 
+import { answerTopicQuestion as answerTopicQuestionAction, AnswerTopicQuestionOutput } from "@/app/actions/answer-topic-question-action";
+
+
 interface ChatbotProps {
   lessonContext: string;
+  userSummary: string;
+  quizScore: { score: number, total: number } | null;
 }
 
 interface Message {
@@ -23,7 +27,7 @@ interface Message {
   isUser: boolean;
 }
 
-export default function Chatbot({ lessonContext }: ChatbotProps) {
+export default function Chatbot({ lessonContext, userSummary, quizScore }: ChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -57,10 +61,20 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
             question = `Ask me a Socratic question about the topic based on my initial question: "${messageText}". Guide me to discover the answer myself without giving it away directly. Start by asking a clarifying question.`
         }
 
-        const response = await answerTopicQuestion({ lessonContent: lessonContext, userQuestion: question });
-        const aiMessage: Message = { id: Date.now() + 1, text: response, isUser: false };
+        const response = await answerTopicQuestionAction({ 
+            lessonContent: lessonContext, 
+            userQuestion: question,
+            userSummary: userSummary,
+            quizScore: quizScore,
+        });
+
+        if (!response.success) {
+            throw new Error(response.message);
+        }
+
+        const aiMessage: Message = { id: Date.now() + 1, text: response.answer, isUser: false };
         setMessages(prev => [...prev, aiMessage]);
-    } catch(e) {
+    } catch(e: any) {
         console.error("Chatbot error:", e);
         const errorMessage: Message = { id: Date.now() + 1, text: "Sorry, I encountered an error. Please try again.", isUser: false };
         setMessages(prev => [...prev, errorMessage]);
@@ -116,7 +130,7 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
                                 {message.text.sections.map((section, index) => (
                                     <div key={index}>
                                         <h3>{section.title}</h3>
-                                        <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: section.content.replace(/```/g, '<pre><code>').replace(/`/g, '</code>') }} />
+                                        <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: section.content.replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>').replace(/`(.*?)`/g, '<code>$1</code>') }} />
                                         {section.analogy && <p className="text-xs italic border-l-2 pl-2 my-2"><strong>Analogy:</strong> {section.analogy}</p>}
                                     </div>
                                 ))}

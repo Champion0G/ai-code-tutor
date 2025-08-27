@@ -13,9 +13,10 @@ import type { GenerateQuizOutput } from "@/ai/flows/generate-quiz";
 interface QuizViewProps {
   quiz: GenerateQuizOutput;
   onCorrectAnswer: () => void;
+  onQuizComplete: (score: number, totalQuestions: number) => void;
 }
 
-export function QuizView({ quiz, onCorrectAnswer }: QuizViewProps) {
+export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProps) {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string | null>>({});
   const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
   const [score, setScore] = useState(0);
@@ -38,6 +39,7 @@ export function QuizView({ quiz, onCorrectAnswer }: QuizViewProps) {
 
     if (currentQuestionIndex === quiz.questions.length - 1) {
         setIsFinished(true);
+        onQuizComplete(isCorrect ? score + 1 : score, quiz.questions.length);
     }
   };
   
@@ -46,6 +48,7 @@ export function QuizView({ quiz, onCorrectAnswer }: QuizViewProps) {
       setSubmittedAnswers({});
       setScore(0);
       setIsFinished(false);
+      onQuizComplete(0, quiz.questions.length);
   }
 
   if (isFinished) {
@@ -140,3 +143,5 @@ export function QuizView({ quiz, onCorrectAnswer }: QuizViewProps) {
     </Card>
   );
 }
+
+    

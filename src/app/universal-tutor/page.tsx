@@ -47,6 +47,8 @@ function UniversalTutorView() {
   const [userSummary, setUserSummary] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  const [quizScore, setQuizScore] = useState<{ score: number, total: number } | null>(null);
+
 
   const getLessonAsText = (currentLesson: UniversalLesson | null): string => {
     if (!currentLesson) return "";
@@ -73,6 +75,7 @@ function UniversalTutorView() {
     setFeedback(null);
     setUserSummary("");
     setFurtherExplanation(null);
+    setQuizScore(null);
 
     try {
       const result = await generateLessonAction({ topic, knowledgeLevel });
@@ -130,6 +133,10 @@ function UniversalTutorView() {
       addXp(20);
       addBadge('Quiz_Whiz');
   }
+
+  const handleQuizCompletion = (finalScore: number, totalQuestions: number) => {
+    setQuizScore({ score: finalScore, total: totalQuestions });
+  };
 
   const handleGetFeedback = async () => {
       if (!userSummary || !lesson) return;
@@ -367,7 +374,7 @@ function UniversalTutorView() {
                     <Separator />
 
                     {quiz ? (
-                        <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
+                        <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} onQuizComplete={handleQuizCompletion} />
                     ) : (
                         <div className='text-center'>
                             <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">
@@ -381,7 +388,7 @@ function UniversalTutorView() {
           )}
         </div>
       </main>
-      {lesson && <Chatbot lessonContext={lessonContentForContext} />}
+      {lesson && <Chatbot lessonContext={lessonContentForContext} userSummary={userSummary} quizScore={quizScore} />}
     </div>
   );
 }

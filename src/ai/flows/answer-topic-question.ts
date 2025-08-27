@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview Answers a user's question about a specific lesson topic.
+ * @fileOverview DEPRECATED - Use adaptive-answer-question.ts instead.
  */
 
 import {ai} from '@/ai/genkit';
@@ -74,3 +74,5 @@ const answerTopicQuestionFlow = ai.defineFlow(
     return output!;
   }
 );
+
+    
