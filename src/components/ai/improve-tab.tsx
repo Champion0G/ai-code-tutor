@@ -65,7 +65,7 @@ export function ImproveTab({ selectedSnippet, onImprovement }: ImproveTabProps) 
       <RadioGroup
         defaultValue="intermediate"
         onValueChange={(v: KnowledgeLevel) => setKnowledgeLevel(v)}
-        className="flex space-x-4"
+        className="flex space-x-4 flex-shrink-0"
         disabled={isLoading}
       >
         <div className="flex items-center space-x-2">
