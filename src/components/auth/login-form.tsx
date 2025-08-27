@@ -69,13 +69,7 @@ export function LoginForm() {
       }
 
       const user = data.user as User;
-      loadInitialData({
-        name: user.name,
-        email: user.email,
-        level: user.level,
-        xp: user.xp,
-        badges: user.badges
-      });
+      loadInitialData(user);
 
       toast({
         title: "Login Successful",
