@@ -116,11 +116,15 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     const timer = setTimeout(() => {
         if (!isLoaded) {
             setIsLoaded(true);
-            setHasLoadedInitialData(true);
+            // We set hasLoadedInitialData to true here for non-logged-in users
+            // For logged-in users, it's set in loadInitialData
+            if (!email) {
+              setHasLoadedInitialData(true);
+            }
         }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [isLoaded])
+  }, [isLoaded, email])
 
   const updateProgressInDb = useCallback(async (updatedProgress: { level: number, xp: number, badges: BadgeName[] }) => {
       if(!email) return; 
