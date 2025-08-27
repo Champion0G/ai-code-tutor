@@ -31,6 +31,7 @@ interface GamificationContextType {
   addXp: (amount: number) => void;
   addBadge: (name: BadgeName) => void;
   loadInitialData: (data: { name: string, email: string, level: number, xp: number, badges: BadgeName[]}) => void;
+  resetContext: () => void;
 }
 
 const GamificationContext = createContext<GamificationContextType | undefined>(
@@ -88,6 +89,16 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     setTimeout(() => setIsLoaded(true), 500);
   }, []);
 
+  const resetContext = useCallback(() => {
+    setName("Guest");
+    setEmail("");
+    setLevel(1);
+    setXp(0);
+    setBadges([]);
+    setLevelUpXp(LEVEL_XP_BASE);
+    setIsLoaded(true);
+  }, []);
+
   const updateProgressInDb = useCallback(async (updatedProgress: { level: number, xp: number, badges: BadgeName[] }) => {
       try {
         const response = await fetch('/api/user/progress', {
@@ -127,24 +138,24 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     
     setLevelUpXp(newLevelUpXp);
     
-    if (isLoaded) {
+    if (isLoaded && email) {
       updateProgressInDb({ level: newLevel, xp: newXp, badges: badges.map(b => b.name) });
     }
-  }, [xp, level, levelUpXp, isLoaded, badges, updateProgressInDb]);
+  }, [xp, level, levelUpXp, isLoaded, badges, updateProgressInDb, email]);
 
   const addBadge = useCallback((name: BadgeName) => {
     if (!badges.some(b => b.name === name)) {
       const newBadges = [...badges, { name, ...badgeDetails[name] }];
       setBadges(newBadges);
-      if(isLoaded) {
+      if(isLoaded && email) {
         updateProgressInDb({ level, xp, badges: newBadges.map(b => b.name) });
       }
     }
-  }, [badges, level, xp, isLoaded, updateProgressInDb]);
+  }, [badges, level, xp, isLoaded, updateProgressInDb, email]);
 
   return (
     <GamificationContext.Provider
-      value={{ xp, level, levelUpXp, badges, name, email, isLoaded, addXp, addBadge, loadInitialData }}
+      value={{ xp, level, levelUpXp, badges, name, email, isLoaded, addXp, addBadge, loadInitialData, resetContext }}
     >
       {children}
     </GamificationContext.Provider>
