@@ -6,18 +6,26 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles, BookCopy } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles } from 'lucide-react';
 import { Header } from '@/components/header';
 import { generateUniversalLesson } from '@/ai/flows/generate-universal-lesson';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
+import { QuizView } from '@/components/quiz-view';
+import { useGamification } from '@/contexts/gamification-context';
+import Chatbot from '@/components/chatbot';
 
 function UniversalTutorView() {
   const [topic, setTopic] = useState('');
   const [lesson, setLesson] = useState<UniversalLesson | null>(null);
+  const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quizKey, setQuizKey] = useState(0);
+  const { addXp, addBadge } = useGamification();
 
   const handleGenerateLesson = async () => {
     if (!topic) {
@@ -28,6 +36,7 @@ function UniversalTutorView() {
     setIsLoading(true);
     setError(null);
     setLesson(null);
+    setQuiz(null);
 
     try {
       const result = await generateUniversalLesson({ topic });
@@ -39,6 +48,40 @@ function UniversalTutorView() {
       setIsLoading(false);
     }
   };
+
+  const handleGenerateQuiz = async () => {
+      if (!lesson) return;
+      
+      setIsLoadingQuiz(true);
+      setError(null);
+      setQuiz(null);
+      
+      try {
+          const lessonContent = `Title: ${lesson.title}\\nIntroduction: ${lesson.introduction.analogy}\\n${lesson.stepByStep.map(s => `Step: ${s.title}\\n${s.content}`).join('\\n\\n')}\\nConclusion: ${lesson.summary}`;
+          const result = await generateQuiz({ fileContent: lessonContent, fileName: lesson.title });
+          setQuiz(result);
+          setQuizKey(prev => prev + 1);
+      } catch(e) {
+          setError('Failed to generate quiz. Please try again.');
+          console.error(e);
+      } finally {
+          setIsLoadingQuiz(false);
+      }
+  };
+
+  const handleCorrectAnswer = () => {
+      addXp(20);
+      addBadge('Quiz_Whiz');
+  }
+
+  const lessonContentForContext = lesson ? 
+    `Title: ${lesson.title}\nIntroduction: ${lesson.introduction.analogy}\n` +
+    lesson.stepByStep.map(s => `Step: ${s.title}\n${s.content}`).join('\n\n') +
+    `\nDeep Dive: ${lesson.deepDive.title}\n${lesson.deepDive.content}` +
+    `\nReal World Application: ${lesson.realWorldApplication}` +
+    `\nConclusion: ${lesson.summary}`
+    : "";
+
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
@@ -136,11 +179,25 @@ function UniversalTutorView() {
                             )}
                         </CardContent>
                     </Card>
+
+                    <Separator />
+
+                    {quiz ? (
+                        <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
+                    ) : (
+                        <div className='text-center'>
+                            <Button onClick={handleGenerateQuiz} disabled={isLoadingQuiz} size="lg">
+                                {isLoadingQuiz ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                {isLoadingQuiz ? 'Generating Quiz...' : 'Test Your Knowledge!'}
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
           )}
         </div>
       </main>
+      {lesson && <Chatbot lessonContext={lessonContentForContext} />}
     </div>
   );
 }
