@@ -217,7 +217,7 @@ function TutorView() {
                           </Button>
                           
                           <form onSubmit={(e) => {e.preventDefault(); handleAskQuestion(); }} className="space-y-2">
-                             <Label htmlFor="user-question">Ask a specific question</Label>
+                             <label htmlFor="user-question">Ask a specific question</label>
                              <Textarea
                                 id="user-question"
                                 placeholder="e.g., 'What's the difference between let and var in this context?'"
