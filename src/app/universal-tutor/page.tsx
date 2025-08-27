@@ -24,8 +24,10 @@ import { getFeedbackOnSummaryAction } from '@/app/actions/get-feedback-on-summar
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { answerTopicQuestionAction } from '@/app/actions/answer-topic-question-action';
+import { explainTopicFurtherAction } from '@/app/actions/explain-topic-further-action';
 
-import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
+
+import type { ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
 
 type KnowledgeLevel = "beginner" | "intermediate" | "advanced";
 
@@ -121,8 +123,16 @@ function UniversalTutorView() {
     setIsLoadingExplanation(true);
     setError(null);
     try {
-      const result = await explainTopicFurther({ lesson });
-      setFurtherExplanation(result);
+      const result = await explainTopicFurtherAction({ 
+        lesson,
+        quizScore: quizScore ? (quizScore.score / quizScore.total) * 100 : undefined,
+        userSummary: feedback ? userSummary : undefined,
+      });
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      setFurtherExplanation(result.explanation);
       addXp(15);
     } catch (e: any) {
       setError(e.message || 'Failed to generate further explanation. Please try again.');
@@ -324,7 +334,7 @@ function UniversalTutorView() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Dig Deeper</CardTitle>
-                                <CardDescription>Want to know more? Let the AI explain the concepts in greater detail.</CardDescription>
+                                <CardDescription>Want to know more? Let the AI explain the concepts in greater detail, adapting to your progress.</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Button onClick={handleExplainFurther} disabled={isLoadingExplanation}>
@@ -426,3 +436,4 @@ export default function UniversalTutorPage() {
     <UniversalTutorView />
   )
 }
+
