@@ -7,7 +7,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { GenerateLessonOutput } from './generate-lesson';
 
 export const KeyConceptSchema = z.object({
   title: z.string().describe('The title of the key concept.'),
@@ -32,6 +31,8 @@ export const GenerateLessonOutputSchema = z.object({
     ),
   conclusion: z.string().describe('A summary of the lesson and next steps.'),
 });
+export type GenerateLessonOutput = z.infer<typeof GenerateLessonOutputSchema>;
+
 
 const ExplainTopicFurtherInputSchema = z.object({
   lesson: GenerateLessonOutputSchema.describe('The original lesson that was generated.'),

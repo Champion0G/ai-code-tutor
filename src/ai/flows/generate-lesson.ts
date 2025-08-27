@@ -11,14 +11,14 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { GenerateLessonOutputSchema } from './explain-topic-further';
+import { GenerateLessonOutputSchema, GenerateLessonOutput } from './explain-topic-further';
 
 
 const GenerateLessonInputSchema = z.object({
   topic: z.string().describe('The topic the user wants to learn about.'),
 });
 export type GenerateLessonInput = z.infer<typeof GenerateLessonInputSchema>;
-export type GenerateLessonOutput = z.infer<typeof GenerateLessonOutputSchema>;
+
 
 export async function generateLesson(
   input: GenerateLessonInput
@@ -56,6 +56,6 @@ const generateLessonFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    return output! as GenerateLessonOutput;
   }
 );
