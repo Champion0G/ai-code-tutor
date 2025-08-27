@@ -66,10 +66,14 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     // Don't show toast on initial load or if user is not logged in
     if (!isLoaded || badges.length === 0 || !email) return;
     const latestBadge = badges[badges.length - 1];
-    toast({
-        title: "New Badge Unlocked!",
-        description: `You've earned the "${latestBadge.name.replace(/_/g, ' ')}" badge!`
-    });
+    
+    // Add a check to ensure latestBadge is not undefined
+    if (latestBadge) {
+        toast({
+            title: "New Badge Unlocked!",
+            description: `You've earned the "${latestBadge.name.replace(/_/g, ' ')}" badge!`
+        });
+    }
     // We only want to run this when a new badge is added.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [badges.length]);
