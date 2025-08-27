@@ -1,16 +1,17 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { MessageSquare, Send, Loader2, X } from "lucide-react";
+import { MessageSquare, Send, Loader2, X, BrainCircuit } from "lucide-react";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { answerTopicQuestion, AnswerTopicQuestionOutput } from "@/ai/flows/answer-topic-question";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { CodeAlchemistIcon } from "./icons";
 import { cn } from "@/lib/utils";
+import { Separator } from "./ui/separator";
 
 interface ChatbotProps {
   lessonContext: string;
@@ -27,17 +28,36 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
 
-    const userMessage: Message = { id: Date.now(), text: input, isUser: true };
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        // A bit of a hack to scroll to the bottom.
+        setTimeout(() => {
+            const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
+        }, 100);
+    }
+  }, [messages, isLoading]);
+
+  const handleSend = async (messageText: string, isSocratic: boolean = false) => {
+    if (!messageText.trim()) return;
+
+    const userMessage: Message = { id: Date.now(), text: messageText, isUser: true };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
     try {
-        const response = await answerTopicQuestion({ lessonContent: lessonContext, userQuestion: input });
+        let question = messageText;
+        if(isSocratic) {
+            question = `Ask me a Socratic question about the following topic to help me think more deeply. My initial question is: "${messageText}". Guide me to the answer without giving it away directly.`
+        }
+
+        const response = await answerTopicQuestion({ lessonContent: lessonContext, userQuestion: question });
         const aiMessage: Message = { id: Date.now() + 1, text: response, isUser: false };
         setMessages(prev => [...prev, aiMessage]);
     } catch(e) {
@@ -48,6 +68,11 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
         setIsLoading(false);
     }
   };
+
+  const handleSocraticPrompt = () => {
+    handleSend("What's one thing I might be misunderstanding about this topic?", true);
+  };
+
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -69,7 +94,7 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
         <header className="p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
             <h3 className="font-semibold">Ask follow-up questions</h3>
         </header>
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
             {messages.map((message) => (
                 <div key={message.id} className={cn("flex items-start gap-3", message.isUser ? "justify-end" : "justify-start")}>
@@ -90,7 +115,7 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
                                 {message.text.sections.map((section, index) => (
                                     <div key={index}>
                                         <h3>{section.title}</h3>
-                                        <p className="whitespace-pre-wrap">{section.content}</p>
+                                        <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: section.content.replace(/```/g, '<pre><code>').replace(/`/g, '</code>') }} />
                                         {section.analogy && <p className="text-xs italic border-l-2 pl-2 my-2"><strong>Analogy:</strong> {section.analogy}</p>}
                                     </div>
                                 ))}
@@ -119,8 +144,13 @@ export default function Chatbot({ lessonContext }: ChatbotProps) {
                 )}
             </div>
         </ScrollArea>
-        <footer className="p-4 border-t">
-            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-center gap-2">
+        <footer className="p-4 border-t space-y-3">
+            <Button variant="outline" size="sm" className="w-full" onClick={handleSocraticPrompt} disabled={isLoading}>
+                <BrainCircuit className="mr-2 h-4 w-4" />
+                Help me think deeper (Socratic Method)
+            </Button>
+            <Separator />
+            <form onSubmit={(e) => { e.preventDefault(); handleSend(input); }} className="flex items-center gap-2">
                 <Input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}

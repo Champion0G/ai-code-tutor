@@ -3,16 +3,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, Volume2, Image as ImageIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { generateUniversalLesson } from '@/ai/flows/generate-universal-lesson';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
+import { generateVisualAid } from '@/ai/flows/generate-visual-aid';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { QuizView } from '@/components/quiz-view';
 import { useGamification } from '@/contexts/gamification-context';
 import Chatbot from '@/components/chatbot';
@@ -21,11 +24,29 @@ function UniversalTutorView() {
   const [topic, setTopic] = useState('');
   const [lesson, setLesson] = useState<UniversalLesson | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
+  const [visualAidUrl, setVisualAidUrl] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
+  const [isLoadingVisual, setIsLoadingVisual] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
   const { addXp, addBadge } = useGamification();
+
+  const getLessonAsText = (currentLesson: UniversalLesson | null): string => {
+    if (!currentLesson) return "";
+    return `
+      Title: ${currentLesson.title}.
+      Introduction: Use this analogy: ${currentLesson.introduction.analogy}.
+      Let's break it down step-by-step. ${currentLesson.stepByStep.map((s, i) => `Step ${i+1}: ${s.title}. ${s.content}`).join(' ')}
+      Now for a deeper academic explanation. ${currentLesson.deepDive.title}. ${currentLesson.deepDive.content}.
+      Here is a real world application. ${currentLesson.realWorldApplication}.
+      To summarize: ${currentLesson.summary}.
+    `;
+  }
 
   const handleGenerateLesson = async () => {
     if (!topic) {
@@ -37,6 +58,9 @@ function UniversalTutorView() {
     setError(null);
     setLesson(null);
     setQuiz(null);
+    setVisualAidUrl(null);
+    setAudioUrl(null);
+
 
     try {
       const result = await generateUniversalLesson({ topic });
@@ -69,18 +93,42 @@ function UniversalTutorView() {
       }
   };
 
+  const handleGenerateVisual = async () => {
+    if (!lesson) return;
+    setIsLoadingVisual(true);
+    try {
+      const result = await generateVisualAid({ topic: lesson.title, lessonContent: getLessonAsText(lesson) });
+      setVisualAidUrl(result.imageUrl);
+    } catch (e) {
+      setError('Failed to generate visual aid. Please try again.');
+      console.error(e);
+    } finally {
+      setIsLoadingVisual(false);
+    }
+  };
+
+  const handleGenerateAudio = async () => {
+    if (!lesson) return;
+    setIsLoadingAudio(true);
+    try {
+        const lessonText = getLessonAsText(lesson);
+        const result = await textToSpeech(lessonText);
+        setAudioUrl(result.audioDataUri);
+    } catch(e) {
+        setError('Failed to generate audio. Please try again.');
+        console.error(e);
+    } finally {
+        setIsLoadingAudio(false);
+    }
+  }
+
+
   const handleCorrectAnswer = () => {
       addXp(20);
       addBadge('Quiz_Whiz');
   }
 
-  const lessonContentForContext = lesson ? 
-    `Title: ${lesson.title}\nIntroduction: ${lesson.introduction.analogy}\n` +
-    lesson.stepByStep.map(s => `Step: ${s.title}\n${s.content}`).join('\n\n') +
-    `\nDeep Dive: ${lesson.deepDive.title}\n${lesson.deepDive.content}` +
-    `\nReal World Application: ${lesson.realWorldApplication}` +
-    `\nConclusion: ${lesson.summary}`
-    : "";
+  const lessonContentForContext = getLessonAsText(lesson);
 
 
   return (
@@ -155,6 +203,45 @@ function UniversalTutorView() {
 
                     <Separator />
 
+                    <div className='flex items-center flex-wrap gap-4'>
+                         <Button onClick={handleGenerateVisual} disabled={isLoadingVisual || !!visualAidUrl}>
+                            {isLoadingVisual ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
+                            {isLoadingVisual ? 'Generating...' : 'Visual Aid'}
+                        </Button>
+                         <Button onClick={handleGenerateAudio} disabled={isLoadingAudio || !!audioUrl}>
+                            {isLoadingAudio ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Volume2 className="mr-2 h-4 w-4" />}
+                             {isLoadingAudio ? 'Generating...' : 'Listen to Lesson'}
+                        </Button>
+                    </div>
+
+                    {audioUrl && (
+                        <Card className='bg-muted/50'>
+                            <CardContent className='p-4'>
+                                <audio controls className='w-full'>
+                                    <source src={audioUrl} type="audio/wav" />
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {visualAidUrl && (
+                        <Card className='bg-muted/50'>
+                            <CardHeader>
+                               <CardTitle className="text-xl">Visual Aid</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
+                                    <Image src={visualAidUrl} alt={`Visual aid for ${lesson.title}`} fill style={{ objectFit: 'contain' }} />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+
+                    <Separator />
+
+
                     <Card className='bg-muted/50'>
                         <CardHeader>
                             <CardTitle className='flex items-center gap-3 text-xl'>
@@ -208,3 +295,5 @@ export default function UniversalTutorPage() {
     <UniversalTutorView />
   )
 }
+
+    
