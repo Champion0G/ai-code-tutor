@@ -52,8 +52,8 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
 
   // Effect for level-up toast
   useEffect(() => {
-    // Don't show toast on initial load
-    if (!isLoaded || level === 1) return;
+    // Don't show toast on initial load or if user is not logged in
+    if (!isLoaded || level === 1 || !email) return;
     toast({
         title: "Level Up!",
         description: `Congratulations, you've reached Level ${level}!`
@@ -63,8 +63,8 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
 
   // Effect for new badge toast
   useEffect(() => {
-    // Don't show toast on initial load
-    if (!isLoaded || badges.length === 0) return;
+    // Don't show toast on initial load or if user is not logged in
+    if (!isLoaded || badges.length === 0 || !email) return;
     const latestBadge = badges[badges.length - 1];
     toast({
         title: "New Badge Unlocked!",
@@ -99,6 +99,19 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     setIsLoaded(true);
   }, []);
 
+  // On initial load, if there's no user data being loaded (i.e. not logged in), 
+  // we still need to set isLoaded to true.
+  useEffect(() => {
+    // If after a moment, we're still not loaded (i.e. loadInitialData was not called),
+    // assume the user is not logged in and set loading to complete.
+    const timer = setTimeout(() => {
+        if (!isLoaded) {
+            setIsLoaded(true);
+        }
+    }, 1000); // 1 second delay
+    return () => clearTimeout(timer);
+  }, [isLoaded])
+
   const updateProgressInDb = useCallback(async (updatedProgress: { level: number, xp: number, badges: BadgeName[] }) => {
       try {
         const response = await fetch('/api/user/progress', {
@@ -120,6 +133,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   }, [toast]);
 
   const addXp = useCallback((amount: number) => {
+    if (!email) return; // Don't add XP for guest users
     let newXp = xp + amount;
     let newLevel = level;
     let newLevelUpXp = levelUpXp;
@@ -144,6 +158,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   }, [xp, level, levelUpXp, isLoaded, badges, updateProgressInDb, email]);
 
   const addBadge = useCallback((name: BadgeName) => {
+    if (!email) return; // Don't add badges for guest users
     if (!badges.some(b => b.name === name)) {
       const newBadges = [...badges, { name, ...badgeDetails[name] }];
       setBadges(newBadges);

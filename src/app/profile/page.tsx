@@ -9,7 +9,7 @@ import { Header } from '@/components/header';
 import { BadgeIcon } from '@/components/icons';
 import { Progress } from '@/components/ui/progress';
 import { useGamification } from '@/contexts/gamification-context';
-import { ChevronLeft, LogIn, LogOut, UserPlus, Loader2 } from 'lucide-react';
+import { ChevronLeft, LogIn, LogOut, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -100,7 +100,7 @@ function ProfileView() {
                                 <Separator className="mb-4" />
                                 <div className="flex justify-end gap-2">
                                     {!isLoaded ? (
-                                        <Skeleton className="h-10 w-24" />
+                                        <Skeleton className="h-10 w-44" />
                                     ) : isLoggedIn ? (
                                         <Button onClick={handleLogout} variant="destructive">
                                             <LogOut className="mr-2 h-4 w-4" />
