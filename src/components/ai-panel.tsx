@@ -9,10 +9,12 @@ import { ImproveTab } from "./ai/improve-tab";
 import { SummaryTab } from "./ai/summary-tab";
 import { QuizTab } from "./ai/quiz-tab";
 import type { BadgeName } from "@/contexts/gamification-context";
+import type { FileNode } from "@/lib/mock-data";
 
 interface AiPanelProps {
   fileContent: string;
   fileName: string;
+  fileTree: FileNode[];
   selectedSnippet: string;
   setSelectedSnippet: (snippet: string) => void;
 }
@@ -20,6 +22,7 @@ interface AiPanelProps {
 export function AiPanel({
   fileContent,
   fileName,
+  fileTree,
   selectedSnippet,
   setSelectedSnippet
 }: AiPanelProps) {
@@ -47,6 +50,7 @@ export function AiPanel({
                 <SummaryTab
                   fileContent={fileContent}
                   fileName={fileName}
+                  fileTree={fileTree}
                   onSummary={() => handleActionSuccess(15, "Archivist")}
                 />
               </TabsContent>

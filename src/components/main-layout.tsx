@@ -270,6 +270,7 @@ export function MainLayout() {
               <AiPanel
                 fileContent={activeFile?.content || ""}
                 fileName={activeFile?.name || ""}
+                fileTree={fileTree}
                 selectedSnippet={selectedSnippet}
                 setSelectedSnippet={setSelectedSnippet}
               />
