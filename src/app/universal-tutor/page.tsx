@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, RefreshCcw, CheckCircle, Lightbulb } from 'lucide-react';
+import { ChevronLeft, Loader2, WandSparkles, BookCopy, Sparkles, CheckCircle, Lightbulb, Brain } from 'lucide-react';
 import { Header } from '@/components/header';
 import type { UniversalLesson } from '@/models/universal-lesson';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +24,8 @@ import { getFeedbackOnSummaryAction } from '@/app/actions/get-feedback-on-summar
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
+import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
+
 type KnowledgeLevel = "beginner" | "intermediate" | "advanced";
 
 function UniversalTutorView() {
@@ -31,10 +33,12 @@ function UniversalTutorView() {
   const [knowledgeLevel, setKnowledgeLevel] = useState<KnowledgeLevel>("beginner");
   const [lesson, setLesson] = useState<UniversalLesson | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
-  
+  const [furtherExplanation, setFurtherExplanation] = useState<ExplainTopicFurtherOutput | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
@@ -68,6 +72,7 @@ function UniversalTutorView() {
     setQuiz(null);
     setFeedback(null);
     setUserSummary("");
+    setFurtherExplanation(null);
 
     try {
       const result = await generateLessonAction({ topic, knowledgeLevel });
@@ -104,6 +109,21 @@ function UniversalTutorView() {
       } finally {
           setIsLoadingQuiz(false);
       }
+  };
+
+  const handleExplainFurther = async () => {
+    if (!lesson) return;
+    setIsLoadingExplanation(true);
+    setError(null);
+    try {
+      const result = await explainTopicFurther({ lesson });
+      setFurtherExplanation(result);
+    } catch (e: any) {
+      setError(e.message || 'Failed to generate further explanation. Please try again.');
+      console.error(e);
+    } finally {
+      setIsLoadingExplanation(false);
+    }
   };
 
   const handleCorrectAnswer = () => {
@@ -232,28 +252,69 @@ function UniversalTutorView() {
 
                     <Separator />
 
-                    <Card className='bg-muted/50'>
+                    {furtherExplanation ? (
+                       <div className="space-y-6">
+                            <h2 className="text-3xl font-bold tracking-tight text-center">{furtherExplanation.title}</h2>
+                            <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto">{furtherExplanation.introduction}</p>
+                            <div className="grid gap-6">
+                                {furtherExplanation.sections.map((section, index) => (
+                                    <Card key={index} className="bg-muted/50">
+                                        <CardHeader>
+                                            <CardTitle className="text-xl flex items-center gap-3"><Brain className="h-6 w-6 text-primary" /> {section.title}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{section.content}</div>
+                                            {section.analogy && (
+                                                <div className="p-4 bg-background/50 rounded-lg border border-dashed border-accent">
+                                                    <p className="flex items-start gap-3">
+                                                        <Lightbulb className="h-5 w-5 text-accent mt-1 shrink-0" />
+                                                        <span className="flex-1 text-sm italic"><strong className='not-italic'>Analogy:</strong> {section.analogy}</span>
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                            <p className="text-center text-muted-foreground">{furtherExplanation.conclusion}</p>
+                        </div>
+                    ): (
+                         <Card className='bg-muted/50'>
+                            <CardHeader>
+                                <CardTitle className='flex items-center gap-3 text-xl'>
+                                    <BookCopy className='h-6 w-6 text-primary' />
+                                    {lesson.deepDive.title}
+                                </CardTitle>
+                                <CardDescription>
+                                    A more detailed, academic look into the topic.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className='prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap'>
+                                    {lesson.deepDive.content}
+                                </div>
+                                {lesson.deepDive.references && lesson.deepDive.references.length > 0 && (
+                                    <>
+                                        <h4 className='font-semibold mt-6 mb-2'>References</h4>
+                                        <ul className='list-disc list-inside text-sm space-y-1'>
+                                            {lesson.deepDive.references.map((ref, i) => <li key={i}>{ref}</li>)}
+                                        </ul>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    <Card>
                         <CardHeader>
-                            <CardTitle className='flex items-center gap-3 text-xl'>
-                                <BookCopy className='h-6 w-6 text-primary' />
-                                {lesson.deepDive.title}
-                            </CardTitle>
-                             <CardDescription>
-                                A more detailed, academic look into the topic.
-                            </CardDescription>
+                            <CardTitle>Dig Deeper</CardTitle>
+                            <CardDescription>Want to know more? Let the AI explain the concepts in greater detail.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className='prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap'>
-                                {lesson.deepDive.content}
-                            </div>
-                            {lesson.deepDive.references && lesson.deepDive.references.length > 0 && (
-                                <>
-                                    <h4 className='font-semibold mt-6 mb-2'>References</h4>
-                                    <ul className='list-disc list-inside text-sm space-y-1'>
-                                        {lesson.deepDive.references.map((ref, i) => <li key={i}>{ref}</li>)}
-                                    </ul>
-                                </>
-                            )}
+                             <Button onClick={handleExplainFurther} disabled={isLoadingExplanation}>
+                                {isLoadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
+                                {isLoadingExplanation ? 'Expanding...' : 'Explain Further'}
+                            </Button>
                         </CardContent>
                     </Card>
 
@@ -326,5 +387,3 @@ export default function UniversalTutorPage() {
     <UniversalTutorView />
   )
 }
-
-    
