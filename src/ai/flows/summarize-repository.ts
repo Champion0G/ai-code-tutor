@@ -62,7 +62,7 @@ export async function summarizeRepository(input: SummarizeRepositoryInput): Prom
 
 const prompt = ai.definePrompt({
   name: 'summarizeRepositoryPrompt',
-  input: {schema: SummarizeRepositoryInputSchema},
+  input: {schema: z.object({ fileTreeString: z.string() }) },
   output: {schema: SummarizeRepositoryOutputSchema},
   prompt: `You are an AI assistant that provides high-level summaries of code repositories.
 
@@ -75,14 +75,10 @@ Do not analyze file contents, only the file structure.
 
 File Structure:
 \`\`\`
-{{{stringifyFileTree fileTree}}}
+{{{fileTreeString}}}
 \`\`\`
 
 Provide a concise, high-level summary in the 'summary' field.`,
-}, {
-    helpers: {
-        stringifyFileTree: (nodes: FileNode[]) => stringifyFileTree(nodes),
-    }
 });
 
 const summarizeRepositoryFlow = ai.defineFlow(
@@ -91,8 +87,9 @@ const summarizeRepositoryFlow = ai.defineFlow(
     inputSchema: SummarizeRepositoryInputSchema,
     outputSchema: SummarizeRepositoryOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const fileTreeString = stringifyFileTree(input.fileTree);
+    const {output} = await prompt({ fileTreeString });
     return output!;
   }
 );
