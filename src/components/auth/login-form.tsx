@@ -2,11 +2,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,9 +19,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { CodeAlchemistIcon } from "../icons";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useGamification } from "@/contexts/gamification-context";
 import { Separator } from "../ui/separator";
+import { useGamification } from "@/contexts/gamification-context";
+import type { User } from "@/models/user";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -34,9 +36,10 @@ const formSchema = z.object({
 });
 
 export function LoginForm() {
+  const router = useRouter();
   const { toast } = useToast();
-  const { loadInitialData } = useGamification();
   const [isLoading, setIsLoading] = useState(false);
+  const { loadInitialData } = useGamification();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -60,15 +63,21 @@ export function LoginForm() {
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');
       }
-      
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${data.user.name}!`,
+
+      const user = data.user as User;
+      loadInitialData({
+        name: user.name,
+        email: user.email,
+        level: user.level,
+        xp: user.xp,
+        badges: user.badges
       });
 
-      loadInitialData(data.user);
-      window.location.href = '/explainer';
-
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.name}!`,
+      });
+      router.push('/');
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -76,7 +85,7 @@ export function LoginForm() {
         description: error.message || 'An unknown error occurred.',
       });
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -84,16 +93,16 @@ export function LoginForm() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
-               <CodeAlchemistIcon className="h-8 w-8 text-primary" />
-               <CardTitle className="text-2xl">Code Alchemist</CardTitle>
-            </div>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <CodeAlchemistIcon className="h-8 w-8 text-primary" />
+            <CardTitle className="text-2xl">Code Alchemist</CardTitle>
+          </div>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your credentials to access your account.
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <Form {...form}>
+          <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
@@ -114,13 +123,13 @@ export function LoginForm() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center">
-                      <FormLabel>Password</FormLabel>
-                      <Link
-                        href="/forgot-password"
-                        className="ml-auto inline-block text-sm underline"
-                      >
-                        Forgot your password?
-                      </Link>
+                        <FormLabel>Password</FormLabel>
+                        <Link
+                            href="/forgot-password"
+                            className="ml-auto inline-block text-xs underline"
+                        >
+                            Forgot your password?
+                        </Link>
                     </div>
                     <FormControl>
                       <Input type="password" {...field} />
@@ -130,22 +139,22 @@ export function LoginForm() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                 {isLoading ? "Logging in..." : "Login"}
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
-            </Form>
-             <div className="mt-4 text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link href="/signup" className="underline">
-                Sign up
-                </Link>
-            </div>
+          </Form>
+          <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="underline">
+              Sign up
+            </Link>
+          </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-4">
+         <CardFooter className="flex flex-col gap-4">
             <Separator />
-            <div className="text-center text-sm text-muted-foreground">
-                <Link href="/" className="underline">Back to Home</Link> | <Link href="/support" className="underline">Contact Support</Link>
+             <div className="text-center text-sm text-muted-foreground">
+                <Link href="/" className="underline">Back to Home</Link> | <a href="/support" className="underline">Contact Support</a>
             </div>
         </CardFooter>
       </Card>
