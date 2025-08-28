@@ -33,7 +33,9 @@ async function updateUserUsage(userId: string, updates: Partial<User>): Promise<
 
 export async function POST(req: Request) {
   try {
-    const token = cookies().get('token')?.value;
+    const cookieStore = cookies();
+    const token = cookieStore.get('token')?.value;
+
     if (!token) {
       return NextResponse.json({ message: 'Authentication required. No token found.' }, { status: 401 });
     }
