@@ -1,32 +1,17 @@
 
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
 import { ObjectId } from 'mongodb';
 import { User } from '@/models/user';
 import { safeError } from '@/lib/safe-error';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
-
 export async function POST(req: Request) {
   try {
-    const token = cookies().get('token')?.value;
-    if (!token) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
-    }
-    
-    let decoded;
-    try {
-      decoded = await jwtVerify(token, JWT_SECRET);
-    } catch (err) {
-      const safe = safeError(err);
-      return NextResponse.json({ message: 'Invalid token.', error: safe.message }, { status: 401 });
-    }
-    
-    const userId = decoded.payload.userId as string;
+    const { level, xp, badges, userId } = await req.json();
 
-    const { level, xp, badges } = await req.json();
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID is required.' }, { status: 400 });
+    }
 
     const client = await clientPromise;
     const db = client.db("ai-code-tutor");

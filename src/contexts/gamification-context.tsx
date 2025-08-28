@@ -142,12 +142,12 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const updateProgressInDb = async (updatedProgress: Partial<User>) => {
-      if(!user?.email) return null; 
+      if(!user?._id) return null; 
       try {
         const response = await fetch('/api/user/progress', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedProgress),
+            body: JSON.stringify({...updatedProgress, userId: user._id }),
         });
         const data = await response.json();
         if (!response.ok) {
@@ -178,7 +178,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
-    if (user) { // Registered user - no server-side auth check needed for usage
+    if (user) {
         return true;
     } else { // Guest user
         if (guestUsage.count >= AI_USAGE_LIMIT_GUEST) {
