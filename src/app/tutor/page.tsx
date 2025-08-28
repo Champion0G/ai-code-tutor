@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, ChevronLeft, Loader2, WandSparkles, Sparkles, Brain, Lightbulb } from 'lucide-react';
 import { generateLesson } from '@/ai/flows/generate-lesson';
-import { explainTopicFurther, ExplainTopicFurtherOutput } from '@/ai/flows/explain-topic-further';
 import type { GenerateLessonOutput } from '@/models/lesson';
 import { generateQuiz, GenerateQuizOutput } from '@/ai/flows/generate-quiz';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,11 +21,9 @@ function TutorView() {
   const [topic, setTopic] = useState('');
   const [lesson, setLesson] = useState<GenerateLessonOutput | null>(null);
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
-  const [furtherExplanation, setFurtherExplanation] = useState<ExplainTopicFurtherOutput | null>(null);
 
   const [isLoadingLesson, setIsLoadingLesson] = useState(false);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
-  const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
@@ -49,7 +46,6 @@ function TutorView() {
     setError(null);
     setLesson(null);
     setQuiz(null);
-    setFurtherExplanation(null);
 
     try {
       const result = await generateLesson({ topic });
@@ -86,28 +82,6 @@ function TutorView() {
       } finally {
           setIsLoadingQuiz(false);
       }
-  };
-
-  const handleExplainFurther = async () => {
-    if (!lesson) return;
-
-    const canProceed = await checkAndIncrementUsage();
-    if (!canProceed) {
-        setError("You have reached your daily AI usage limit.");
-        return;
-    }
-    
-    setIsLoadingExplanation(true);
-    setError(null);
-    try {
-      const result = await explainTopicFurther({ lesson });
-      setFurtherExplanation(result);
-    } catch (e) {
-      setError('Failed to generate further explanation. Please try again.');
-      console.error(e);
-    } finally {
-      setIsLoadingExplanation(false);
-    }
   };
 
   const handleCorrectAnswer = () => {
@@ -197,51 +171,6 @@ function TutorView() {
                     <Separator className='my-8' />
 
                     <div className="space-y-6">
-                      {furtherExplanation && (
-                        <div className="space-y-6">
-                            <h2 className="text-3xl font-bold tracking-tight text-center">{furtherExplanation.title}</h2>
-                            <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto">{furtherExplanation.introduction}</p>
-                            <div className="grid gap-6">
-                                {furtherExplanation.sections.map((section, index) => (
-                                    <Card key={index} className="bg-muted/50">
-                                        <CardHeader>
-                                            <CardTitle className="text-xl flex items-center gap-3"><Brain className="h-6 w-6 text-primary" /> {section.title}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4">
-                                            <div className="prose prose-base max-w-none dark:prose-invert whitespace-pre-wrap">{section.content}</div>
-                                            {section.analogy && (
-                                                <div className="p-4 bg-background/50 rounded-lg border border-dashed border-accent">
-                                                    <p className="flex items-start gap-3">
-                                                        <Lightbulb className="h-5 w-5 text-accent mt-1 shrink-0" />
-                                                        <span className="flex-1 text-sm italic"><strong className='not-italic'>Analogy:</strong> {section.analogy}</span>
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                            <p className="text-center text-muted-foreground">{furtherExplanation.conclusion}</p>
-                        </div>
-                      )}
-
-                      <Card>
-                        <CardHeader>
-                            <CardTitle className="text-xl">Still Curious?</CardTitle>
-                            <CardDescription>Use the options below to explore the topic further.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className='flex items-start flex-wrap gap-4'>
-                            <Button onClick={handleExplainFurther} disabled={isLoadingExplanation} className="w-full sm:w-auto">
-                              {isLoadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
-                              {isLoadingExplanation ? 'Expanding...' : 'Explain Further'}
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                       <Separator className='my-8' />
-
                       {quiz ? (
                            <QuizView key={quizKey} quiz={quiz} onCorrectAnswer={handleCorrectAnswer} />
                       ) : (

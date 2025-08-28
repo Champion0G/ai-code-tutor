@@ -168,13 +168,13 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
             <>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground cursor-default">
+                  <Link href="/credits" className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                     <Bot className="h-5 w-5 text-primary" />
                      {isLoggedIn ? <Infinity className="h-5 w-5" /> : <span>{remainingUsage}</span>}
-                  </div>
+                  </Link>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>AI credits remaining today</p>
+                  <p>AI credits remaining today. Click to learn more.</p>
                 </TooltipContent>
               </Tooltip>
 

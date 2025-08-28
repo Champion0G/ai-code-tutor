@@ -34,6 +34,7 @@ export function ModeSelection() {
                     </div>
                     <CardDescription>
                     Explore an existing codebase with the help of an AI assistant. Get explanations, summaries, and suggestions for improvement.
+                    <span className="block font-semibold text-primary mt-2">Best for project-based learning.</span>
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
@@ -59,6 +60,7 @@ export function ModeSelection() {
                     </div>
                     <CardDescription>
                     Learn specific programming concepts from scratch. The AI will guide you with structured lessons, examples, and exercises.
+                    <span className="block font-semibold text-primary mt-2">Best for mastering specific programming topics.</span>
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
@@ -84,6 +86,7 @@ export function ModeSelection() {
                     </div>
                     <CardDescription>
                     An adaptive tutor for any subject, using a multi-modal teaching framework to match your learning style.
+                    <span className="block font-semibold text-primary mt-2">Best for a fun, gamified way to learn anything.</span>
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
