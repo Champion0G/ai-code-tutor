@@ -23,7 +23,7 @@ export default function CreditsPage() {
         </CardHeader>
         <CardContent className="space-y-6 text-muted-foreground">
             <p>
-                To ensure fair usage and keep Lexer available to everyone, we have a daily limit on how many times guests can use our AI-powered features. Registered users enjoy unlimited access.
+                To ensure fair usage and keep Lexer available to everyone, we have a daily limit on how many times guests can use our AI-powered features. Registered users enjoy unlimited access, which may be subject to change in future updates.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                 <div className="p-6 bg-muted/50 rounded-lg">
@@ -33,6 +33,7 @@ export default function CreditsPage() {
                  <div className="p-6 bg-muted/50 rounded-lg">
                     <Infinity className="h-10 w-10 mx-auto text-foreground" />
                     <p className="font-semibold mt-2">Unlimited Credits for Registered Users</p>
+                    <p className="text-xs text-muted-foreground">(Until further notice)</p>
                 </div>
             </div>
             <p>
