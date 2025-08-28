@@ -11,7 +11,8 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export async function POST(req: Request) {
   try {
-    const token = cookies().get('token')?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
     if (!token) {
       return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
     }

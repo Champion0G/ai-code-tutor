@@ -8,11 +8,24 @@ const CACHE_TTL = 60 * 60; // 1 hour
 
 let redis: Redis | null = null;
 
+// if (process.env.DISABLE_CACHE !== "true") {
+//   redis = new Redis(process.env.REDIS_URL as string);
+// } else {
+//   redis = {
+//     get: async () => null,
+//     set: async () => null,
+//   };
+// }
+
 function getClient(): Redis | null {
-  if (process.env.REDIS_URL) {
+  if (process.env.REDIS_URL && process.env.DISABLE_CACHE !== "true") {
     if (!redis) {
       try {
-        redis = new Redis(process.env.REDIS_URL);
+        redis = new Redis(process.env.REDIS_URL, {
+          enableReadyCheck: false,
+          maxRetriesPerRequest: null,
+          lazyConnect: true,
+        });
         console.log("Successfully connected to Redis.");
       } catch (error) {
         console.error("Failed to connect to Redis:", error);
@@ -21,7 +34,7 @@ function getClient(): Redis | null {
     }
     return redis;
   }
-  console.warn("REDIS_URL not set. Caching will be disabled.");
+  console.warn("REDIS_URL not set or caching disabled. Using memory cache.");
   return null;
 }
 
@@ -42,7 +55,10 @@ function hash(obj: any): string {
  */
 export async function get<T>(key: string): Promise<T | null> {
   const client = getClient();
-  if (!client) return null;
+  if (!client) {
+    // Fallback to memory cache
+    return memory.get<T>(key);
+  }
 
   try {
     const data = await client.get(key);
@@ -54,7 +70,8 @@ export async function get<T>(key: string): Promise<T | null> {
     return null;
   } catch (error) {
     console.error(`[Cache] Error getting key "${key}":`, error);
-    return null;
+    // Fallback to memory cache on error
+    return memory.get<T>(key);
   }
 }
 
@@ -65,7 +82,11 @@ export async function get<T>(key: string): Promise<T | null> {
  */
 export async function set<T>(key: string, value: T): Promise<void> {
   const client = getClient();
-  if (!client) return;
+  if (!client) {
+    // Fallback to memory cache
+    memory.set(key, value);
+    return;
+  }
 
   try {
     const stringValue = JSON.stringify(value);
@@ -73,6 +94,8 @@ export async function set<T>(key: string, value: T): Promise<void> {
     console.log(`[Cache] SET for key: ${key}`);
   } catch (error) {
     console.error(`[Cache] Error setting key "${key}":`, error);
+    // Fallback to memory cache on error
+    memory.set(key, value);
   }
 }
 

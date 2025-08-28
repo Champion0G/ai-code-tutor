@@ -80,7 +80,7 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
           throw new Error(response.message);
       }
 
-      const aiMessage: Message = { id: Date.now() + 1, text: response.answer, isUser: false };
+      const aiMessage: Message = { id: Date.now() + 1, text: response.answer || "No response received", isUser: false };
       setMessages(prev => [...prev, aiMessage]);
     } catch(e: any) {
       console.error("Chatbot error:", e);
@@ -154,7 +154,7 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
                                 {message.text.sections.map((section, index) => (
                                     <div key={index}>
                                         <h3>{section.title}</h3>
-                                        <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: section.content.replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>').replace(/`(.*?)`/g, '<code>$1</code>') }} />
+                                        <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: section.content.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>').replace(/`(.*?)`/g, '<code>$1</code>') }} />
                                         {section.analogy && <p className="text-xs italic border-l-2 pl-2 my-2"><strong>Analogy:</strong> {section.analogy}</p>}
                                     </div>
                                 ))}

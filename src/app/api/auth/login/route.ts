@@ -45,7 +45,8 @@ export async function POST(req: Request) {
       .setExpirationTime('1h')
       .sign(JWT_SECRET);
 
-    cookies().set('token', token, {
+    const cookieStore = await cookies();
+    cookieStore.set('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         maxAge: 60 * 60,

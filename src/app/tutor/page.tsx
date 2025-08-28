@@ -16,6 +16,7 @@ import { QuizView } from '@/components/quiz-view';
 import { useGamification } from '@/contexts/gamification-context';
 import { Separator } from '@/components/ui/separator';
 import Chatbot from '@/components/chatbot';
+import { answerTopicQuestionAction } from '@/app/actions/answer-topic-question-action';
 
 function TutorView() {
   const [topic, setTopic] = useState('');
@@ -187,7 +188,22 @@ function TutorView() {
           )}
         </div>
       </main>
-      {lesson && <Chatbot lessonContext={lessonContentForContext} />}
+      {lesson && (
+        <Chatbot 
+          lessonContext={lessonContentForContext} 
+          askSocraticQuestion={async (question: string) => {
+            const result = await answerTopicQuestionAction({
+              lessonContent: lessonContentForContext,
+              userQuestion: question
+            });
+            if (result.success && result.answer) {
+              return result.answer;
+            } else {
+              return { title: "Error", introduction: "Could not get a response.", sections: [], conclusion: "" };
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

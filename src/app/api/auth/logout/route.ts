@@ -5,7 +5,8 @@ import { safeError } from '@/lib/safe-error';
 
 export async function POST() {
   try {
-    cookies().delete('token');
+    const cookieStore = await cookies();
+    cookieStore.delete('token');
     
     return NextResponse.json({ message: 'Logout successful.' }, { status: 200 });
   } catch (error) {

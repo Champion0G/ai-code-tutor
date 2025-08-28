@@ -91,7 +91,11 @@ function UniversalTutorView() {
       if (!result.success) {
           throw new Error(result.message);
       }
-      setLesson(result.lesson);
+      if (result.lesson) {
+        setLesson(result.lesson);
+      } else {
+        throw new Error('No lesson generated');
+      }
     } catch (e: any) {
       setError(e.message || 'Failed to generate lesson. Please try again.');
       console.error(e);
@@ -120,7 +124,11 @@ function UniversalTutorView() {
           if (!result.success) {
               throw new Error(result.message);
           }
-          setQuiz(result.quiz);
+          if (result.quiz) {
+            setQuiz(result.quiz);
+          } else {
+            throw new Error('No quiz generated');
+          }
           setQuizKey(prev => prev + 1);
       } catch(e: any) {
           setError(e.message || 'Failed to generate quiz. Please try again.');
@@ -151,7 +159,11 @@ function UniversalTutorView() {
       if (!result.success) {
         throw new Error(result.message);
       }
-      setFurtherExplanation(result.explanation);
+      if (result.explanation) {
+        setFurtherExplanation(result.explanation);
+      } else {
+        throw new Error('No explanation generated');
+      }
       addXp(15);
     } catch (e: any) {
       setError(e.message || 'Failed to generate further explanation. Please try again.');
@@ -196,7 +208,11 @@ function UniversalTutorView() {
         if(!result.success) {
             throw new Error(result.message);
         }
-        setFeedback(result.feedback.feedback);
+        if (result.feedback?.feedback) {
+          setFeedback(result.feedback.feedback);
+        } else {
+          throw new Error('No feedback generated');
+        }
         addXp(30);
       } catch (e: any) {
         setError(e.message || 'Failed to get feedback.');
@@ -475,10 +491,14 @@ function UniversalTutorView() {
         lessonContext={lessonContentForContext}
         askSocraticQuestion={async (question) => {
             const result = await answerTopicQuestionAction({
-                lessonContent: `Socratic Question: ${question}`,
-                userQuestion: "Lead me to the answer socratically.",
+                lessonContent: lessonContentForContext,
+                userQuestion: question,
             });
-            return result.success ? result.answer : { title: "Error", introduction: "Could not get a socratic response.", sections: [], conclusion: "" };
+            if (result.success && result.answer) {
+              return result.answer;
+            } else {
+              return { title: "Error", introduction: "Could not get a socratic response.", sections: [], conclusion: "" };
+            }
         }}
         />
     </div>
