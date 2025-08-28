@@ -34,8 +34,10 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
   const [error, setError] = useState<string | null>(null);
 
   const handleFileAction = async (isNewSummary: boolean, q?: string) => {
-    if (!fileContent) {
-      setError("No file content to analyze.");
+    // If asking a question without file content, but with a repo summary, use that as context.
+    const context = fileContent || repoSummary;
+    if (!context) {
+      setError("Please summarize a file or repository before asking questions.");
       return;
     }
 
@@ -50,15 +52,22 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
     }
 
     try {
+      // Use a generic context instead of just fileContent
       const response = await summarizeFileAndQA({
-        fileContent,
-        question: isNewSummary ? "Provide a summary of this file." : currentQuestion,
+        fileContent: context,
+        question: isNewSummary ? `Provide a summary of this file.` : currentQuestion,
       });
-      setFileResult(response);
-      setQuestion(currentQuestion);
+
+      // If we were summarizing a file, update the fileResult, otherwise just update the answer part.
       if (isNewSummary) {
-        onSummary();
+        setFileResult(response);
+      } else {
+        // Keep the existing summary, but update the answer.
+        setFileResult(prev => ({ summary: prev?.summary || "", answer: response.answer }));
       }
+      
+      setQuestion(currentQuestion);
+      onSummary();
     } catch (e) {
       setError("Failed to process the file. Please try again.");
       console.error(e);
@@ -80,6 +89,8 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
     try {
         const response = await summarizeRepository({ fileTree });
         setRepoSummary(response.summary);
+        // Also seed the fileResult with the repo summary for Q&A
+        setFileResult({ summary: response.summary, answer: "" });
         onSummary();
     } catch(e) {
         setError("Failed to summarize repository. Please try again.");
@@ -94,10 +105,11 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
   }
 
   const isLoadingFileSummary = isLoading && !fileResult;
+  const canAskQuestions = !!fileContent || !!repoSummary;
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      <div className="mt-4">
+      <div className="flex-shrink-0">
         <h3 className="text-lg font-semibold">File & Repository Summary</h3>
         <p className="text-sm text-muted-foreground">
           Get a summary of the selected file (<strong>{fileName || "none"}</strong>) or the entire repository.
@@ -110,7 +122,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
                 <BookText className="mr-2 h-4 w-4" />
                 {isLoadingFileSummary ? "Summarizing File..." : "Summarize Current File"}
             </Button>
-            <Button onClick={handleRepoSummary} disabled={isRepoLoading || isLoading}>
+            <Button onClick={handleRepoSummary} disabled={isRepoLoading || isLoading || fileTree.length === 0}>
                 <FolderGit2 className="mr-2 h-4 w-4" />
                 {isRepoLoading ? "Summarizing..." : "Summarize Repo/Folder"}
             </Button>
@@ -132,12 +144,12 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
         >
             <Input
             type="text"
-            placeholder="Ask a question about the file..."
+            placeholder="Ask a question..."
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            disabled={isLoading || isRepoLoading}
+            disabled={isLoading || isRepoLoading || !canAskQuestions}
             />
-            <Button type="submit" disabled={!question || isLoading || isRepoLoading || !fileContent}>
+            <Button type="submit" disabled={!question || isLoading || isRepoLoading || !canAskQuestions}>
             <HelpCircle className="mr-2 h-4 w-4" />
             Ask
             </Button>
@@ -145,7 +157,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
 
         <div className="flex flex-wrap gap-2">
             {exampleQuestions.map((q) => (
-                <Button key={q} size="sm" variant="outline" className="text-xs" onClick={() => handleExampleClick(q)} disabled={isLoading || isRepoLoading || !fileContent}>
+                <Button key={q} size="sm" variant="outline" className="text-xs" onClick={() => handleExampleClick(q)} disabled={isLoading || isRepoLoading}>
                     <Sparkles className="mr-2 h-3 w-3" />
                     {q}
                 </Button>
@@ -157,7 +169,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
 
       <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-4 min-h-[150px]">
         <ScrollArea className="h-full">
-        {isLoading ? (
+        {isLoading || isRepoLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
@@ -165,10 +177,17 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
             </div>
         ) : error ? (
             <div className="text-destructive">{error}</div>
-        ) : repoSummary ? (
+        ) : repoSummary && !fileContent ? ( // Show repo summary if it exists and no file is selected
             <div>
               <h4 className="font-semibold mb-2 text-base">Repository Summary:</h4>
               <p className="text-sm whitespace-pre-wrap">{repoSummary}</p>
+              {fileResult?.answer && question && (
+                 <div>
+                    <Separator className="my-4" />
+                    <h4 className="font-semibold mb-2">Answer to "{question}":</h4>
+                    <p className="text-sm whitespace-pre-wrap">{fileResult.answer}</p>
+                 </div>
+              )}
             </div>
         ) : fileResult ? (
           <div className="space-y-4">
