@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import type { FileNode } from "@/lib/mock-data";
 import { fileTree as initialFileTree } from "@/lib/mock-data";
 import {
   Sidebar,
-  SidebarContent,
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
@@ -16,8 +15,8 @@ import { CodePanel } from "@/components/code-panel";
 import { AiPanel } from "@/components/ai-panel";
 import { getFileContent } from "@/ai/flows/get-file-content";
 import { useToast } from "@/hooks/use-toast";
+import { ProjectProvider, useProject } from "@/contexts/project-context";
 
-const LOCAL_STORAGE_KEY = 'lexer-file-tree';
 
 // Helper function to build a file tree from a flat list of files
 function buildFileTree(files: File[]): Promise<FileNode[]> {
@@ -77,63 +76,18 @@ function buildFileTree(files: File[]): Promise<FileNode[]> {
 }
 
 
-export function MainLayout() {
-  const [fileTree, setFileTree] = useState<FileNode[]>([]);
-  const [activeFile, setActiveFile] = useState<FileNode | null>(null);
+function MainLayoutContent() {
+  const { 
+    fileTree, 
+    setFileTree, 
+    activeFile, 
+    setActiveFile, 
+    setProjectName,
+    projectName
+   } = useProject();
+
   const [selectedSnippet, setSelectedSnippet] = useState<string>("");
   const { toast } = useToast();
-
-  // Load initial file tree from localStorage or use mock data
-  useEffect(() => {
-    try {
-        const savedTree = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedTree) {
-            setFileTree(JSON.parse(savedTree));
-        } else {
-            setFileTree(initialFileTree);
-        }
-    } catch (error) {
-        console.error("Failed to load from localStorage", error);
-        setFileTree(initialFileTree);
-    }
-  }, []);
-
-  const findFirstFile = (nodes: FileNode[]): FileNode | null => {
-    for(const node of nodes) {
-        if(node.type === 'file') return node;
-        if(node.children) {
-            const found = findFirstFile(node.children);
-            if (found) return found;
-        }
-    }
-    return null;
-  };
-
-  const saveTreeToLocalStorage = (tree: FileNode[]) => {
-      try {
-          // Create a deep copy of the tree and remove file content before saving
-          const treeWithoutContent = JSON.parse(JSON.stringify(tree));
-          const stripContent = (nodes: FileNode[]) => {
-              nodes.forEach(node => {
-                  if (node.type === 'file') {
-                      delete node.content;
-                  }
-                  if (node.children) {
-                      stripContent(node.children);
-                  }
-              });
-          };
-          stripContent(treeWithoutContent);
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(treeWithoutContent));
-      } catch (error) {
-          console.error("Failed to save to localStorage", error);
-          toast({
-              variant: "destructive",
-              title: "Could not save project",
-              description: "The browser's local storage might be full."
-          })
-      }
-  }
   
   const handleFileSelect = useCallback(async (file: FileNode) => {
     if (file.type === "file") {
@@ -158,7 +112,6 @@ export function MainLayout() {
                 
                 setFileTree(prevTree => {
                     const updatedTree = updateFileContent(prevTree, file.path, content);
-                    // Don't save to localStorage here, it will be saved with content stripped
                     return updatedTree;
                 });
                 setActiveFile(newFileWithContent);
@@ -178,7 +131,7 @@ export function MainLayout() {
         }
         setSelectedSnippet("");
     }
-  }, [toast]);
+  }, [toast, setFileTree, setActiveFile]);
 
   const handleSnippetSelect = () => {
     const selection = window.getSelection()?.toString();
@@ -188,10 +141,13 @@ export function MainLayout() {
   };
 
   const handleFolderUpload = async (files: File[]) => {
+    if (files.length > 0) {
+      const folderName = files[0].webkitRelativePath.split('/')[0];
+      setProjectName(folderName);
+    }
     const newFileTree = await buildFileTree(files);
     setFileTree(newFileTree);
     setActiveFile(null); // Reset active file
-    saveTreeToLocalStorage(newFileTree);
   };
 
   const handleFileUpload = (file: File) => {
@@ -207,40 +163,32 @@ export function MainLayout() {
         const newTree = [newFileNode];
         setFileTree(newTree);
         setActiveFile(newFileNode);
-        saveTreeToLocalStorage(newTree);
+        setProjectName(file.name);
     }
     reader.readAsText(file);
   }
 
-  const handleRepoImport = (newFileTree: FileNode[]) => {
+  const handleRepoImport = (repoName: string, newFileTree: FileNode[]) => {
+    setProjectName(repoName);
     setFileTree(newFileTree);
     setActiveFile(null); // Reset active file
-    saveTreeToLocalStorage(newFileTree);
   };
 
   const handleReset = () => {
       setFileTree(initialFileTree);
-      const firstFile = findFirstFile(initialFileTree);
-      if(firstFile) {
-        setActiveFile(firstFile);
-      } else {
-        setActiveFile(null);
-      }
+      setActiveFile(null);
+      setProjectName("Code Alchemist Example");
       toast({
           title: "Project Reset",
           description: "Showing the default example project."
       });
-      // Clear the saved tree from local storage
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
   }
 
   return (
     <SidebarProvider>
       <Sidebar>
         <FileExplorer 
-            files={fileTree} 
             onFileSelect={handleFileSelect} 
-            activeFile={activeFile}
             onFileUpload={handleFileUpload}
             onFolderUpload={handleFolderUpload}
             onRepoImport={handleRepoImport}
@@ -269,4 +217,12 @@ export function MainLayout() {
       </SidebarInset>
     </SidebarProvider>
   );
+}
+
+export function MainLayout() {
+  return (
+    <ProjectProvider>
+      <MainLayoutContent />
+    </ProjectProvider>
+  )
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import type { FileNode } from "@/lib/mock-data";
-import { useState, useRef } from "react";
+import { useState, useRef, Fragment } from "react";
 import {
   SidebarHeader,
   SidebarContent,
@@ -18,15 +18,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { importGithubRepo } from "@/ai/flows/import-github-repo";
+import { useProject } from "@/contexts/project-context";
 
 
 interface FileExplorerProps {
-  files: FileNode[];
   onFileSelect: (file: FileNode) => void;
-  activeFile: FileNode | null;
   onFileUpload: (file: File) => void;
   onFolderUpload: (files: File[]) => void;
-  onRepoImport: (files: FileNode[]) => void;
+  onRepoImport: (repoName: string, files: FileNode[]) => void;
   onReset: () => void;
 }
 
@@ -46,38 +45,36 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
   const isActive = activeFile?.path === node.path;
 
   return (
-    <>
-      <SidebarMenuItem>
-        <div
-          className="flex items-center w-full"
-          style={{ paddingLeft: `${level * 1}rem` }}
+    <SidebarMenuItem>
+      <div
+        className="flex items-center w-full"
+        style={{ paddingLeft: `${level * 1}rem` }}
+      >
+        {isFolder ? (
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleNodeClick}>
+            <ChevronRightIcon
+              className={cn("h-4 w-4 transition-transform", isOpen && "rotate-90")}
+            />
+          </Button>
+        ) : (
+          <div className="w-6" />
+        )}
+        <SidebarMenuButton
+          onClick={handleNodeClick}
+          className="flex-1 h-8 justify-start gap-2 pl-1"
+          isActive={isActive}
+          size="sm"
         >
           {isFolder ? (
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleNodeClick}>
-              <ChevronRightIcon
-                className={cn("h-4 w-4 transition-transform", isOpen && "rotate-90")}
-              />
-            </Button>
+            <FolderIcon className="h-4 w-4 text-sky-500" />
           ) : (
-            <div className="w-6" />
+            <FileIcon className="h-4 w-4 text-muted-foreground" />
           )}
-          <SidebarMenuButton
-            onClick={handleNodeClick}
-            className="flex-1 h-8 justify-start gap-2 pl-1"
-            isActive={isActive}
-            size="sm"
-          >
-            {isFolder ? (
-              <FolderIcon className="h-4 w-4 text-sky-500" />
-            ) : (
-              <FileIcon className="h-4 w-4 text-muted-foreground" />
-            )}
-            <span>{node.name}</span>
-          </SidebarMenuButton>
-        </div>
-      </SidebarMenuItem>
-      {isFolder && isOpen && node.children && (
-        <ul className="pl-2">
+          <span>{node.name}</span>
+        </SidebarMenuButton>
+      </div>
+       {isFolder && isOpen && node.children && (
+        <SidebarMenu>
           {node.children.map((child) => (
             <ExplorerNode
               key={child.path}
@@ -87,13 +84,14 @@ const ExplorerNode = ({ node, onFileSelect, activeFile, level }: { node: FileNod
               level={level + 1}
             />
           ))}
-        </ul>
+        </SidebarMenu>
       )}
-    </>
+    </SidebarMenuItem>
   );
 };
 
-export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, onFolderUpload, onRepoImport, onReset }: FileExplorerProps) {
+export function FileExplorer({ onFileSelect, onFileUpload, onFolderUpload, onRepoImport, onReset }: FileExplorerProps) {
+  const { fileTree, activeFile, projectName } = useProject();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [repoUrl, setRepoUrl] = useState("");
@@ -138,8 +136,10 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
     
     setIsImporting(true);
     try {
+        const urlParts = repoUrl.replace(/^https?:\/\//, '').split('/');
+        const repoName = urlParts[2];
         const result = await importGithubRepo({ repoUrl });
-        onRepoImport(result.fileTree);
+        onRepoImport(repoName, result.fileTree);
         toast({
             title: 'Import Successful',
             description: 'The repository has been loaded into the file explorer.'
@@ -157,6 +157,12 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
     }
   };
 
+  const rootNode: FileNode = {
+    name: projectName,
+    type: "folder",
+    path: projectName,
+    children: fileTree
+  }
 
   return (
     <>
@@ -224,15 +230,14 @@ export function FileExplorer({ files, onFileSelect, activeFile, onFileUpload, on
         </div>
         <div className="flex-1 overflow-auto">
             <SidebarMenu>
-            {files.map((node) => (
-                <ExplorerNode
-                key={node.path}
-                node={node}
-                onFileSelect={onFileSelect}
-                activeFile={activeFile}
-                level={0}
-                />
-            ))}
+              {fileTree.length > 0 && (
+                 <ExplorerNode
+                    node={rootNode}
+                    onFileSelect={onFileSelect}
+                    activeFile={activeFile}
+                    level={0}
+                    />
+              )}
             </SidebarMenu>
         </div>
       </SidebarContent>
