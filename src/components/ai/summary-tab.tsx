@@ -20,7 +20,7 @@ interface SummaryTabProps {
 }
 
 const exampleQuestions = [
-    "Explain this file in simple terms",
+    "Explain this file/folder/repo in simple terms",
     "What is the main purpose of this code?",
     "How does this file fit into the project?",
 ]
@@ -91,7 +91,6 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
   
   const handleExampleClick = (example: string) => {
     setQuestion(example);
-    handleFileAction(false, example);
   }
 
   const isLoadingFileSummary = isLoading && !fileResult;
@@ -101,7 +100,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
       <div className="mt-4">
         <h3 className="text-lg font-semibold">File & Repository Summary</h3>
         <p className="text-sm text-muted-foreground">
-          Get a summary of the selected file (<strong>{fileName}</strong>) or the entire repository.
+          Get a summary of the selected file (<strong>{fileName || "none"}</strong>) or the entire repository.
         </p>
       </div>
       
