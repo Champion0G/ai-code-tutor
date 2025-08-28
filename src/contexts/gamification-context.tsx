@@ -187,7 +187,10 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
             return true;
         } else {
              if (response.status === 429) { // Rate limit exceeded
-                setUser(prev => prev ? { ...prev, aiUsageCount: data.usage.count } : null);
+                setUser(prevUser => {
+                    if (!prevUser) return null;
+                    return { ...prevUser, aiUsageCount: data.usage.count };
+                });
                 showLimitToast(data.message);
              } else {
                 toast({ variant: 'destructive', title: "Error", description: data.message || "Could not verify AI usage." });
