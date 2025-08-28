@@ -178,19 +178,11 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
-    if (user) { // Registered user - no limit
-        const response = await fetch('/api/user/usage', { method: 'POST' });
-        const data = await response.json();
-        if (response.ok) {
-            setUser(data.user);
-            return true;
-        } else {
-             toast({ variant: 'destructive', title: "Error", description: data.message || "Could not verify AI usage." });
-            return false;
-        }
+    if (user) { // Registered user - no server-side auth check needed for usage
+        return true;
     } else { // Guest user
         if (guestUsage.count >= AI_USAGE_LIMIT_GUEST) {
-            showLimitToast("As a guest, you can make 25 AI requests per day. Sign up for more.");
+            showLimitToast("As a guest, you can make 25 AI requests per day. Sign up for unlimited usage.");
             return false;
         }
         const newUsage = { count: guestUsage.count + 1, lastReset: guestUsage.lastReset };

@@ -37,7 +37,9 @@ export async function POST(req: Request) {
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
-      return NextResponse.json({ message: 'Authentication required. No token found.' }, { status: 401 });
+      // This case is now only for guests, as registered user checks are client-side.
+      // We can return a generic error or handle guest logic if needed.
+      return NextResponse.json({ message: 'Authentication required for this action.' }, { status: 401 });
     }
     
     let decoded;
@@ -45,7 +47,6 @@ export async function POST(req: Request) {
       decoded = await jwtVerify(token, JWT_SECRET);
     } catch (err) {
       const safe = safeError(err);
-      // Log the actual error for debugging, but return a generic message.
       console.error("JWT Verification Error:", safe.message);
       return NextResponse.json({ message: 'Invalid token. Please log in again.' }, { status: 401 });
     }
@@ -61,8 +62,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'User not found.' }, { status: 404 });
     }
 
-    // For registered users, we just increment their usage count but do not enforce a limit.
-    // The limit is now effectively infinite. We still track usage for analytics.
+    // For registered users, we just increment their usage count for analytics.
+    // The check for whether they can proceed is now handled on the client.
     const newCount = (user.aiUsageCount || 0) + 1;
     const updatedUser = await updateUserUsage(userId, { aiUsageCount: newCount });
 
@@ -73,7 +74,6 @@ export async function POST(req: Request) {
     const { password, ...userResponse } = updatedUser;
     return NextResponse.json({ 
         message: 'Usage updated.', 
-        limitReached: false, // Always false for registered users now
         user: userResponse
     }, { status: 200 });
 
