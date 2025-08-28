@@ -13,7 +13,7 @@ interface ProjectContextType {
   projectName: string;
   setProjectName: (name: string) => void;
   fileTree: FileNode[];
-  setFileTree: (tree: FileNode[]) => void;
+  setFileTree: React.Dispatch<React.SetStateAction<FileNode[]>>;
   activeFile: FileNode | null;
   setActiveFile: (file: FileNode | null) => void;
 }
@@ -47,6 +47,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
 
   const saveTreeToLocalStorage = (tree: FileNode[]) => {
       try {
+          if (!tree) return; // Don't save if tree is not defined
           const treeWithoutContent = JSON.parse(JSON.stringify(tree));
           const stripContent = (nodes: FileNode[]) => {
               nodes.forEach(node => {
@@ -78,9 +79,12 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       }
   }
 
-  const setFileTree = (tree: FileNode[]) => {
-      setFileTreeState(tree);
-      saveTreeToLocalStorage(tree);
+  const setFileTree: React.Dispatch<React.SetStateAction<FileNode[]>> = (value) => {
+    setFileTreeState(prevState => {
+        const newState = typeof value === 'function' ? (value as (prevState: FileNode[]) => FileNode[])(prevState) : value;
+        saveTreeToLocalStorage(newState);
+        return newState;
+    });
   }
 
   const setProjectName = (name: string) => {
