@@ -14,7 +14,8 @@ async function getUser(userId: string): Promise<User | null> {
     const client = await clientPromise;
     const db = client.db("ai-code-tutor");
     const usersCollection = db.collection<User>('users');
-    return usersCollection.findOne({ _id: new ObjectId(userId) });
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    return user;
 }
 
 async function updateUserUsage(userId: string, updates: Partial<User>): Promise<User | null> {
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
   try {
     const token = cookies().get('token')?.value;
     if (!token) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required. No token found.' }, { status: 401 });
     }
     
     let decoded;
@@ -42,10 +43,16 @@ export async function POST(req: Request) {
       decoded = await jwtVerify(token, JWT_SECRET);
     } catch (err) {
       const safe = safeError(err);
-      return NextResponse.json({ message: 'Invalid token.', error: safe.message }, { status: 401 });
+      // Log the actual error for debugging, but return a generic message.
+      console.error("JWT Verification Error:", safe.message);
+      return NextResponse.json({ message: 'Invalid token. Please log in again.' }, { status: 401 });
     }
     
     const userId = decoded.payload.userId as string;
+    if (!userId) {
+        return NextResponse.json({ message: 'Invalid token payload.' }, { status: 401 });
+    }
+
     let user = await getUser(userId);
 
     if (!user) {
@@ -53,6 +60,7 @@ export async function POST(req: Request) {
     }
 
     const now = new Date();
+    // Ensure aiUsageLastReset is a Date object before comparison
     const lastReset = new Date(user.aiUsageLastReset || 0);
     const timeSinceReset = now.getTime() - lastReset.getTime();
     const oneDay = 24 * 60 * 60 * 1000;
@@ -61,8 +69,12 @@ export async function POST(req: Request) {
     if (timeSinceReset > oneDay) {
         user.aiUsageCount = 0;
         user.aiUsageLastReset = now;
-        user = await updateUserUsage(userId, { aiUsageCount: 0, aiUsageLastReset: now });
-        if (!user) return NextResponse.json({ message: 'User not found after reset.' }, { status: 404 });
+        // The user object is updated here, so subsequent checks use the correct value
+        const updatedUserAfterReset = await updateUserUsage(userId, { aiUsageCount: 0, aiUsageLastReset: now });
+        if (!updatedUserAfterReset) {
+             return NextResponse.json({ message: 'User not found after usage reset.' }, { status: 404 });
+        }
+        user = updatedUserAfterReset;
     }
     
     // Check if usage limit is reached
