@@ -14,7 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
-import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot } from "lucide-react";
+import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot, Coins } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Separator } from "./ui/separator";
 import { useRouter } from "next/navigation";
@@ -93,6 +93,10 @@ function MainNav({ closeSidebar }: { closeSidebar?: () => void }) {
                     <button onClick={() => handleLinkClick('/support')} className={cn(navLinkClasses)}>
                         <LifeBuoy className="h-4 w-4" />
                         Support
+                    </button>
+                    <button onClick={() => handleLinkClick('/credits')} className={cn(navLinkClasses)}>
+                        <Coins className="h-4 w-4" />
+                        AI Credits
                     </button>
                 </nav>
             </div>

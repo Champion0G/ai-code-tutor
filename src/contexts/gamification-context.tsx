@@ -4,6 +4,9 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/models/user";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ToastAction } from "@/components/ui/toast";
 
 export type BadgeIconType = 'Star' | 'Zap' | 'BrainCircuit' | 'Award';
 export type BadgeName = 'First_Explanation' | 'Code_Optimizer' | 'Archivist' | 'Quiz_Whiz';
@@ -163,6 +166,19 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const checkAndIncrementUsage = async (): Promise<boolean> => {
+    const showLimitToast = (message: string) => {
+        toast({
+            variant: 'destructive',
+            title: "Daily Limit Reached",
+            description: message,
+            action: (
+                <ToastAction altText="Learn More" asChild>
+                    <Link href="/credits">Learn More</Link>
+                </ToastAction>
+            )
+        });
+    }
+
     if (user) { // Registered user
         const response = await fetch('/api/user/usage', { method: 'POST' });
         const data = await response.json();
@@ -172,7 +188,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         } else {
              if (response.status === 429) { // Rate limit exceeded
                 setUser(prev => prev ? { ...prev, aiUsageCount: data.usage.count } : null);
-                toast({ variant: 'destructive', title: "Daily Limit Reached", description: data.message });
+                showLimitToast(data.message);
              } else {
                 toast({ variant: 'destructive', title: "Error", description: data.message || "Could not verify AI usage." });
              }
@@ -180,7 +196,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         }
     } else { // Guest user
         if (guestUsage.count >= AI_USAGE_LIMIT_GUEST) {
-            toast({ variant: 'destructive', title: "Daily Limit Reached", description: "As a guest, you can make 25 AI requests per day. Sign up for more." });
+            showLimitToast("As a guest, you can make 25 AI requests per day. Sign up for more.");
             return false;
         }
         const newUsage = { count: guestUsage.count + 1, lastReset: guestUsage.lastReset };
@@ -211,7 +227,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     if(updatedUser) {
         setUser(updatedUser);
     }
-  }, [user, toast]);
+  }, [user]);
 
   const addBadge = useCallback(async (badgeName: BadgeName) => {
     if (!user || (user.badges && user.badges.includes(badgeName))) return;
@@ -222,7 +238,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     if(updatedUser) {
         setUser(updatedUser);
     }
-  }, [user, toast]);
+  }, [user]);
 
   const mappedBadges = user?.badges?.map(name => ({ name, ...badgeDetails[name] })) ?? [];
 
