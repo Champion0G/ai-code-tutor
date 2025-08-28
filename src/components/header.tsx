@@ -14,7 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
-import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot, Coins } from "lucide-react";
+import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot, Coins, Infinity } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Separator } from "./ui/separator";
 import { useRouter } from "next/navigation";
@@ -138,6 +138,9 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
   const { xp, level, badges, levelUpXp, isLoaded, aiUsageCount, aiUsageLimit } = useGamification();
   const [isNavOpen, setIsNavOpen] = useState(false);
 
+  const isLoggedIn = !!useGamification().email;
+  const remainingUsage = aiUsageLimit - aiUsageCount;
+
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-2 md:px-4 shrink-0">
       <div className="flex items-center gap-2">
@@ -167,7 +170,7 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground cursor-default">
                     <Bot className="h-5 w-5 text-primary" />
-                    <span>{aiUsageLimit - aiUsageCount}</span>
+                     {isLoggedIn ? <Infinity className="h-5 w-5" /> : <span>{remainingUsage}</span>}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>

@@ -17,7 +17,6 @@ interface Badge {
   icon: BadgeIconType;
 }
 
-export const AI_USAGE_LIMIT_REGISTERED = 50;
 export const AI_USAGE_LIMIT_GUEST = 25;
 
 
@@ -179,22 +178,14 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
-    if (user) { // Registered user
+    if (user) { // Registered user - no limit
         const response = await fetch('/api/user/usage', { method: 'POST' });
         const data = await response.json();
         if (response.ok) {
             setUser(data.user);
             return true;
         } else {
-             if (response.status === 429) { // Rate limit exceeded
-                setUser(prevUser => {
-                    if (!prevUser) return null;
-                    return { ...prevUser, aiUsageCount: data.usage.count };
-                });
-                showLimitToast(data.message);
-             } else {
-                toast({ variant: 'destructive', title: "Error", description: data.message || "Could not verify AI usage." });
-             }
+             toast({ variant: 'destructive', title: "Error", description: data.message || "Could not verify AI usage." });
             return false;
         }
     } else { // Guest user
@@ -246,7 +237,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   const mappedBadges = user?.badges?.map(name => ({ name, ...badgeDetails[name] })) ?? [];
 
   const aiUsageCount = user ? (user.aiUsageCount || 0) : guestUsage.count;
-  const aiUsageLimit = user ? AI_USAGE_LIMIT_REGISTERED : AI_USAGE_LIMIT_GUEST;
+  const aiUsageLimit = user ? Infinity : AI_USAGE_LIMIT_GUEST;
 
   return (
     <GamificationContext.Provider

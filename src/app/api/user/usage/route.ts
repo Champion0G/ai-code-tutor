@@ -6,7 +6,7 @@ import { jwtVerify } from 'jose';
 import { ObjectId } from 'mongodb';
 import { User } from '@/models/user';
 import { safeError } from '@/lib/safe-error';
-import { AI_USAGE_LIMIT_REGISTERED } from '@/contexts/gamification-context';
+import { AI_USAGE_LIMIT_GUEST } from '@/contexts/gamification-context';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
@@ -59,35 +59,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'User not found.' }, { status: 404 });
     }
 
-    const now = new Date();
-    // Ensure aiUsageLastReset is a Date object before comparison
-    const lastReset = new Date(user.aiUsageLastReset || 0);
-    const timeSinceReset = now.getTime() - lastReset.getTime();
-    const oneDay = 24 * 60 * 60 * 1000;
-
-    // Reset if it's been more than a day
-    if (timeSinceReset > oneDay) {
-        user.aiUsageCount = 0;
-        user.aiUsageLastReset = now;
-        // The user object is updated here, so subsequent checks use the correct value
-        const updatedUserAfterReset = await updateUserUsage(userId, { aiUsageCount: 0, aiUsageLastReset: now });
-        if (!updatedUserAfterReset) {
-             return NextResponse.json({ message: 'User not found after usage reset.' }, { status: 404 });
-        }
-        user = updatedUserAfterReset;
-    }
-    
-    // Check if usage limit is reached
-    if (user.aiUsageCount >= AI_USAGE_LIMIT_REGISTERED) {
-      return NextResponse.json({ 
-        message: 'Daily AI usage limit reached.', 
-        limitReached: true,
-        usage: { count: user.aiUsageCount, limit: AI_USAGE_LIMIT_REGISTERED }
-      }, { status: 429 });
-    }
-
-    // Increment usage
-    const newCount = user.aiUsageCount + 1;
+    // For registered users, we just increment their usage count but do not enforce a limit.
+    // The limit is now effectively infinite. We still track usage for analytics.
+    const newCount = (user.aiUsageCount || 0) + 1;
     const updatedUser = await updateUserUsage(userId, { aiUsageCount: newCount });
 
     if (!updatedUser) {
@@ -97,7 +71,7 @@ export async function POST(req: Request) {
     const { password, ...userResponse } = updatedUser;
     return NextResponse.json({ 
         message: 'Usage updated.', 
-        limitReached: false, 
+        limitReached: false, // Always false for registered users now
         user: userResponse
     }, { status: 200 });
 
