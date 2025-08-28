@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookText, HelpCircle, FolderGit2 } from "lucide-react";
+import { BookText, HelpCircle, FolderGit2, Sparkles } from "lucide-react";
 import { Separator } from "../ui/separator";
 import type { FileNode } from "@/lib/mock-data";
 
@@ -19,6 +19,12 @@ interface SummaryTabProps {
   onSummary: () => void;
 }
 
+const exampleQuestions = [
+    "Explain this file in simple terms",
+    "What is the main purpose of this code?",
+    "How does this file fit into the project?",
+]
+
 export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: SummaryTabProps) {
   const [fileResult, setFileResult] = useState<{ summary: string; answer: string } | null>(null);
   const [repoSummary, setRepoSummary] = useState<string | null>(null);
@@ -27,25 +33,29 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
   const [isRepoLoading, setIsRepoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileAction = async (isNewSummary: boolean) => {
+  const handleFileAction = async (isNewSummary: boolean, q?: string) => {
     if (!fileContent) {
       setError("No file content to analyze.");
       return;
     }
+
+    const currentQuestion = q || question;
 
     setIsLoading(true);
     setError(null);
     if (isNewSummary) {
       setFileResult(null);
       setRepoSummary(null);
+      setQuestion("");
     }
 
     try {
       const response = await summarizeFileAndQA({
         fileContent,
-        question: isNewSummary ? "Provide a summary of this file." : question,
+        question: isNewSummary ? "Provide a summary of this file." : currentQuestion,
       });
       setFileResult(response);
+      setQuestion(currentQuestion);
       if (isNewSummary) {
         onSummary();
       }
@@ -78,6 +88,11 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
         setIsRepoLoading(false);
     }
   };
+  
+  const handleExampleClick = (example: string) => {
+    setQuestion(example);
+    handleFileAction(false, example);
+  }
 
   const isLoadingFileSummary = isLoading && !fileResult;
 
@@ -128,13 +143,22 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
             Ask
             </Button>
         </form>
+
+        <div className="flex flex-wrap gap-2">
+            {exampleQuestions.map((q) => (
+                <Button key={q} size="sm" variant="outline" className="text-xs" onClick={() => handleExampleClick(q)} disabled={isLoading || isRepoLoading || !fileContent}>
+                    <Sparkles className="mr-2 h-3 w-3" />
+                    {q}
+                </Button>
+            ))}
+        </div>
       </div>
 
       <Separator className="my-4" />
 
       <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-4 min-h-[150px]">
         <ScrollArea className="h-full">
-        {isLoadingFileSummary || isRepoLoading ? (
+        {isLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
@@ -156,7 +180,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
             {fileResult.answer && question && (
               <div>
                 <Separator className="my-4" />
-                <h4 className="font-semibold mb-2">Answer:</h4>
+                <h4 className="font-semibold mb-2">Answer to "{question}":</h4>
                 <p className="text-sm whitespace-pre-wrap">{fileResult.answer}</p>
               </div>
             )}
