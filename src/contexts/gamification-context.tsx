@@ -142,12 +142,14 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const updateProgressInDb = async (updatedProgress: Partial<User>) => {
+      // No user, no update.
       if(!user?._id) return null; 
+
       try {
         const response = await fetch('/api/user/progress', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({...updatedProgress, userId: user._id }),
+            body: JSON.stringify(updatedProgress),
         });
         const data = await response.json();
         if (!response.ok) {
@@ -179,6 +181,17 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (user) {
+        // For registered users, we don't need to check limits, just increment for analytics.
+        // We will do this optimistically on the client and fire-and-forget to the server.
+        const newCount = (user.aiUsageCount || 0) + 1;
+        setUser({ ...user, aiUsageCount: newCount });
+
+        fetch('/api/user/usage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}) // Body can be empty, server gets user from token
+        }).catch(err => console.error("Failed to update usage count on server:", err));
+        
         return true;
     } else { // Guest user
         if (guestUsage.count >= AI_USAGE_LIMIT_GUEST) {
