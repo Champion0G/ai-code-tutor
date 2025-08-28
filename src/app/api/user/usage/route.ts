@@ -41,7 +41,8 @@ export async function POST(req: Request) {
     try {
       decoded = await jwtVerify(token, JWT_SECRET);
     } catch (err) {
-      return NextResponse.json({ message: 'Invalid token.' }, { status: 401 });
+      const safe = safeError(err);
+      return NextResponse.json({ message: 'Invalid token.', error: safe.message }, { status: 401 });
     }
     
     const userId = decoded.payload.userId as string;
