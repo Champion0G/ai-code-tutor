@@ -4,7 +4,8 @@
 import type { FileNode } from "@/lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { FileIcon, Menu } from "lucide-react";
+import { FileIcon } from "lucide-react";
+import { SidebarTrigger } from "./ui/sidebar";
 
 interface CodePanelProps {
   file: FileNode | null;
@@ -47,7 +48,7 @@ export function CodePanel({ file, onMouseUp }: CodePanelProps) {
               <p className="mt-1">Select a file from the sidebar to view its content.</p>
               <div className="mt-4 p-4 bg-muted/50 rounded-lg text-sm md:hidden">
                 <p className="flex items-center justify-center gap-2 font-semibold text-foreground">
-                  <Menu className="h-5 w-5" />
+                  <SidebarTrigger className="h-5 w-5" />
                   <span>On Mobile?</span>
                 </p>
                 <p className="mt-2">Tap the menu icon in the header to open the sidebar and upload files or import a repository.</p>
