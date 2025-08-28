@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Lightbulb, Rocket } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { useGamification } from "@/contexts/gamification-context";
 
 interface ImproveTabProps {
   selectedSnippet: string;
@@ -27,11 +28,18 @@ export function ImproveTab({ selectedSnippet, onImprovement }: ImproveTabProps) 
   const [error, setError] = useState<string | null>(null);
   const [knowledgeLevel, setKnowledgeLevel] =
     useState<KnowledgeLevel>("intermediate");
+  const { checkAndIncrementUsage } = useGamification();
 
   const handleImprove = async () => {
     if (!selectedSnippet) {
       setError("Please select a code snippet in the editor first.");
       return;
+    }
+    
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) {
+        setError("You have reached your daily AI usage limit.");
+        return;
     }
 
     setIsLoading(true);

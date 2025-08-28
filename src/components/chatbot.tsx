@@ -10,6 +10,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { LexerIcon } from "./icons";
 import { cn } from "@/lib/utils";
+import { useGamification } from "@/contexts/gamification-context";
 
 import { answerTopicQuestionAction, AnswerTopicQuestionOutput } from "@/app/actions/answer-topic-question-action";
 
@@ -37,6 +38,7 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { checkAndIncrementUsage } = useGamification();
 
 
   useEffect(() => {
@@ -63,6 +65,9 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
     const currentInput = messageText || input;
     if (!currentInput.trim()) return;
 
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) return;
+
     const userMessage: Message = { id: Date.now(), text: currentInput, isUser: true };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
@@ -87,6 +92,9 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
   };
 
   const handleSocraticPrompt = async () => {
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) return;
+
     const socraticPreamble = "Ask me a socratic question about the lesson to help me think deeper.";
     const userMessage: Message = { id: Date.now(), text: "Prompt: Ask me a socratic question.", isUser: true };
     setMessages(prev => [...prev, userMessage]);

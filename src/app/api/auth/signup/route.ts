@@ -47,6 +47,7 @@ export async function POST(req: Request) {
     }
 
     try {
+        const now = new Date();
         const result = await db.collection('users').insertOne({
             name,
             email,
@@ -54,8 +55,10 @@ export async function POST(req: Request) {
             level: 1,
             xp: 0,
             badges: [],
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: now,
+            updatedAt: now,
+            aiUsageCount: 0,
+            aiUsageLastReset: now,
         });
         return NextResponse.json({ message: 'User created successfully.', userId: result.insertedId }, { status: 201 });
     } catch (error) {

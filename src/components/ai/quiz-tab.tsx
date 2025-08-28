@@ -9,6 +9,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
+import { useGamification } from "@/contexts/gamification-context";
 
 interface QuizTabProps {
   fileName: string;
@@ -21,8 +22,16 @@ export function QuizTab({ fileName, fileContent, onCorrectAnswer }: QuizTabProps
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [key, setKey] = useState(0); // Used to re-mount the quiz view
+  const { checkAndIncrementUsage } = useGamification();
 
   const handleGenerateQuiz = async () => {
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) {
+        setIsLoading(false);
+        setError("You have reached your daily AI usage limit.");
+        return;
+    }
+
     setIsLoading(true);
     setError(null);
     setQuiz(null);

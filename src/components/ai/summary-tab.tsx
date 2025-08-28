@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BookText, HelpCircle, FolderGit2, Sparkles } from "lucide-react";
 import { Separator } from "../ui/separator";
 import type { FileNode } from "@/lib/mock-data";
+import { useGamification } from "@/contexts/gamification-context";
 
 interface SummaryTabProps {
   fileContent: string;
@@ -32,11 +33,17 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
   const [isLoading, setIsLoading] = useState(false);
   const [isRepoLoading, setIsRepoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { checkAndIncrementUsage } = useGamification();
 
   const handleFileAction = async (isNewSummary: boolean, q?: string) => {
-    // If asking a question without file content, but with a repo summary, use that as context.
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) {
+        setError("You have reached your daily AI usage limit.");
+        return;
+    }
+
     const context = fileContent || repoSummary;
-    if (!context) {
+    if (!context && !isRepoLoading) {
       setError("Please summarize a file or repository before asking questions.");
       return;
     }
@@ -52,17 +59,14 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
     }
 
     try {
-      // Use a generic context instead of just fileContent
       const response = await summarizeFileAndQA({
-        fileContent: context,
+        fileContent: context || "",
         question: isNewSummary ? `Provide a summary of this file.` : currentQuestion,
       });
 
-      // If we were summarizing a file, update the fileResult, otherwise just update the answer part.
       if (isNewSummary) {
         setFileResult(response);
       } else {
-        // Keep the existing summary, but update the answer.
         setFileResult(prev => ({ summary: prev?.summary || "", answer: response.answer }));
       }
       
@@ -81,6 +85,13 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
       setError("No folder structure available to summarize.");
       return;
     }
+
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) {
+        setError("You have reached your daily AI usage limit.");
+        return;
+    }
+
     setIsRepoLoading(true);
     setError(null);
     setFileResult(null);
@@ -89,7 +100,6 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
     try {
         const response = await summarizeRepository({ fileTree });
         setRepoSummary(response.summary);
-        // Also seed the fileResult with the repo summary for Q&A
         setFileResult({ summary: response.summary, answer: "" });
         onSummary();
     } catch(e) {
@@ -105,7 +115,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
   }
 
   const isLoadingFileSummary = isLoading && !fileResult;
-  const canAskQuestions = !!fileContent || !!repoSummary;
+  const canAskQuestions = !!fileContent || !!repoSummary || fileTree.length > 0;
 
   return (
     <div className="flex flex-col h-full space-y-4">
@@ -157,7 +167,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
 
         <div className="flex flex-wrap gap-2">
             {exampleQuestions.map((q) => (
-                <Button key={q} size="sm" variant="outline" className="text-xs" onClick={() => handleExampleClick(q)} disabled={isLoading || isRepoLoading}>
+                <Button key={q} size="sm" variant="outline" className="text-xs" onClick={() => handleExampleClick(q)} disabled={isLoading || isRepoLoading || !canAskQuestions}>
                     <Sparkles className="mr-2 h-3 w-3" />
                     {q}
                 </Button>
@@ -177,7 +187,7 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
             </div>
         ) : error ? (
             <div className="text-destructive">{error}</div>
-        ) : repoSummary && !fileContent ? ( // Show repo summary if it exists and no file is selected
+        ) : repoSummary && !fileContent ? (
             <div>
               <h4 className="font-semibold mb-2 text-base">Repository Summary:</h4>
               <p className="text-sm whitespace-pre-wrap">{repoSummary}</p>

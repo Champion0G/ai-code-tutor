@@ -14,7 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
-import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy } from "lucide-react";
+import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Separator } from "./ui/separator";
 import { useRouter } from "next/navigation";
@@ -131,7 +131,7 @@ function MainNav({ closeSidebar }: { closeSidebar?: () => void }) {
 }
 
 export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
-  const { xp, level, badges, levelUpXp, isLoaded } = useGamification();
+  const { xp, level, badges, levelUpXp, isLoaded, aiUsageCount, aiUsageLimit } = useGamification();
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
@@ -159,6 +159,18 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
         <div className="flex items-center gap-2 md:gap-4">
           {isLoaded ? (
             <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground cursor-default">
+                    <Bot className="h-5 w-5 text-primary" />
+                    <span>{aiUsageLimit - aiUsageCount}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>AI credits remaining today</p>
+                </TooltipContent>
+              </Tooltip>
+
               <div className="w-32 hidden sm:block">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -198,6 +210,7 @@ export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boo
             </>
           ) : (
              <div className="flex items-center gap-4">
+                <Skeleton className="h-6 w-12" />
                 <Skeleton className="h-8 w-32 hidden sm:block" />
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-8 w-8 rounded-full" />

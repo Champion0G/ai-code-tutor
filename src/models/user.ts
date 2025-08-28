@@ -16,4 +16,6 @@ export interface User {
   updatedAt: Date;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  aiUsageCount: number;
+  aiUsageLastReset: Date;
 }

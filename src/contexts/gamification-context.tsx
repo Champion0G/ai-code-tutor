@@ -14,12 +14,21 @@ interface Badge {
   icon: BadgeIconType;
 }
 
+export const AI_USAGE_LIMIT_REGISTERED = 50;
+export const AI_USAGE_LIMIT_GUEST = 25;
+
+
 const badgeDetails: Record<BadgeName, Omit<Badge, 'name'>> = {
   First_Explanation: { description: "Used 'Explain' for the first time.", icon: 'Star' },
   Code_Optimizer: { description: "Used 'Improve' feature.", icon: 'Zap' },
   Archivist: { description: "Summarized a file.", icon: 'BrainCircuit' },
   Quiz_Whiz: { description: "Answered a quiz question correctly.", icon: 'Award' },
 };
+
+interface GuestUsage {
+    count: number;
+    lastReset: number; // timestamp
+}
 
 interface GamificationContextType {
   xp: number;
@@ -29,10 +38,13 @@ interface GamificationContextType {
   name: string;
   email: string;
   isLoaded: boolean;
+  aiUsageCount: number;
+  aiUsageLimit: number;
   addXp: (amount: number) => void;
   addBadge: (name: BadgeName) => void;
   loadInitialData: (data: User) => void;
   resetContext: () => void;
+  checkAndIncrementUsage: () => Promise<boolean>;
 }
 
 const GamificationContext = createContext<GamificationContextType | undefined>(
@@ -54,9 +66,29 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const [isLoaded, setIsLoaded] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [guestUsage, setGuestUsage] = useState<GuestUsage>({ count: 0, lastReset: Date.now() });
 
   const prevLevel = usePrevious(user?.level);
   const prevBadges = usePrevious(user?.badges);
+
+  useEffect(() => {
+    if (!user) { // Guest user
+        try {
+            const storedUsage = localStorage.getItem('guestAiUsage');
+            if (storedUsage) {
+                const parsed: GuestUsage = JSON.parse(storedUsage);
+                const oneDay = 24 * 60 * 60 * 1000;
+                if (Date.now() - parsed.lastReset > oneDay) {
+                    setGuestUsage({ count: 0, lastReset: Date.now() });
+                } else {
+                    setGuestUsage(parsed);
+                }
+            }
+        } catch (e) {
+            console.error("Could not parse guest usage from localStorage", e);
+        }
+    }
+  }, [user]);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -130,6 +162,38 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
       }
   };
 
+  const checkAndIncrementUsage = async (): Promise<boolean> => {
+    if (user) { // Registered user
+        const response = await fetch('/api/user/usage', { method: 'POST' });
+        const data = await response.json();
+        if (response.ok) {
+            setUser(data.user);
+            return true;
+        } else {
+             if (response.status === 429) { // Rate limit exceeded
+                setUser(prev => prev ? { ...prev, aiUsageCount: data.usage.count } : null);
+                toast({ variant: 'destructive', title: "Daily Limit Reached", description: data.message });
+             } else {
+                toast({ variant: 'destructive', title: "Error", description: data.message || "Could not verify AI usage." });
+             }
+            return false;
+        }
+    } else { // Guest user
+        if (guestUsage.count >= AI_USAGE_LIMIT_GUEST) {
+            toast({ variant: 'destructive', title: "Daily Limit Reached", description: "As a guest, you can make 25 AI requests per day. Sign up for more." });
+            return false;
+        }
+        const newUsage = { count: guestUsage.count + 1, lastReset: guestUsage.lastReset };
+        setGuestUsage(newUsage);
+        try {
+            localStorage.setItem('guestAiUsage', JSON.stringify(newUsage));
+        } catch (e) {
+            console.error("Could not save guest usage to localStorage", e);
+        }
+        return true;
+    }
+  }
+
   const addXp = useCallback(async (amount: number) => {
     if (!user) return;
 
@@ -162,6 +226,9 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
 
   const mappedBadges = user?.badges?.map(name => ({ name, ...badgeDetails[name] })) ?? [];
 
+  const aiUsageCount = user ? (user.aiUsageCount || 0) : guestUsage.count;
+  const aiUsageLimit = user ? AI_USAGE_LIMIT_REGISTERED : AI_USAGE_LIMIT_GUEST;
+
   return (
     <GamificationContext.Provider
       value={{ 
@@ -172,10 +239,13 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         name: user?.name ?? "Guest", 
         email: user?.email ?? "", 
         isLoaded, 
+        aiUsageCount,
+        aiUsageLimit,
         addXp, 
         addBadge, 
         loadInitialData, 
-        resetContext 
+        resetContext,
+        checkAndIncrementUsage
       }}
     >
       {children}

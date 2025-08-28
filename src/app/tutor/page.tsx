@@ -31,12 +31,18 @@ function TutorView() {
   const [error, setError] = useState<string | null>(null);
   const [quizKey, setQuizKey] = useState(0);
 
-  const { addXp, addBadge } = useGamification();
+  const { addXp, addBadge, checkAndIncrementUsage } = useGamification();
   
   const handleGenerateLesson = async () => {
     if (!topic) {
       setError('Please enter a topic to learn.');
       return;
+    }
+    
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) {
+        setError("You have reached your daily AI usage limit.");
+        return;
     }
 
     setIsLoadingLesson(true);
@@ -59,6 +65,12 @@ function TutorView() {
   const handleGenerateQuiz = async () => {
       if (!lesson) return;
       
+      const canProceed = await checkAndIncrementUsage();
+      if (!canProceed) {
+          setError("You have reached your daily AI usage limit.");
+          return;
+      }
+      
       setIsLoadingQuiz(true);
       setError(null);
       setQuiz(null);
@@ -78,6 +90,13 @@ function TutorView() {
 
   const handleExplainFurther = async () => {
     if (!lesson) return;
+
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) {
+        setError("You have reached your daily AI usage limit.");
+        return;
+    }
+    
     setIsLoadingExplanation(true);
     setError(null);
     try {
