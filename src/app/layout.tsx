@@ -7,6 +7,9 @@ import { GamificationProvider } from '@/contexts/gamification-context';
 export const metadata: Metadata = {
   title: 'Lexer',
   description: 'Learn to code with the help of AI',
+  icons: {
+    icon: '/icon.png', // ✅ this is your favicon now
+  },
 };
 
 export default function RootLayout({
@@ -20,6 +23,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet" />
+        <link rel="icon" href="./favicon.ico" />
       </head>
       <body className="font-body antialiased">
         <GamificationProvider>
