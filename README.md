@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🤖 Lexer - AI Code Tutor
 
 **Your personal AI-powered programming tutor that makes learning to code intuitive, interactive, and fun.**
@@ -247,3 +248,4 @@ If you encounter any issues or have questions:
 **Happy Learning! 🎉**
 
 Built with ❤️ for developers who love to learn and teach.
+=======
