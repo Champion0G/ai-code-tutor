@@ -7,7 +7,6 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
-const ADMIN_EMAIL = "techchampion8@gmail.com";
 
 export async function GET() {
   try {
@@ -18,15 +17,10 @@ export async function GET() {
         return NextResponse.json({ success: false, message: 'Authentication required. Please log in.' }, { status: 401 });
     }
 
-    let decoded;
     try {
-        decoded = await jwtVerify(token, JWT_SECRET);
+        await jwtVerify(token, JWT_SECRET);
     } catch (err) {
         return NextResponse.json({ success: false, message: 'Your session has expired or is invalid. Please log in again.' }, { status: 401 });
-    }
-
-    if (decoded.payload.email !== ADMIN_EMAIL) {
-        return NextResponse.json({ success: false, message: 'You are not authorized to view this page.' }, { status: 403 });
     }
 
     const client = await clientPromise;

@@ -29,23 +29,22 @@ export default function AdminPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
             setIsLoading(true);
-            setIsAuthorized(null);
             setError(null);
             
             const result = await getUsers();
 
             if (result.success && result.users) {
                 setUsers(result.users);
-                setIsAuthorized(true);
+                setIsAuthenticated(true);
             } else {
                 setError(result.message || "Failed to load user data.");
-                if (result.status === 401 || result.status === 403) {
-                    setIsAuthorized(false);
+                if (result.status === 401) {
+                    setIsAuthenticated(false);
                 }
             }
             setIsLoading(false);
@@ -91,17 +90,17 @@ export default function AdminPage() {
             )
         }
 
-        if (isAuthorized === false) {
+        if (isAuthenticated === false) {
             return (
                  <Alert variant="destructive">
                     <ShieldAlert className="h-4 w-4" />
-                    <AlertTitle>Access Denied</AlertTitle>
+                    <AlertTitle>Authentication Required</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )
         }
 
-        if (error && isAuthorized !== false) {
+        if (error) {
              return (
                 <Alert variant="destructive">
                     <Terminal className="h-4 w-4" />
@@ -111,43 +110,47 @@ export default function AdminPage() {
             );
         }
 
-        return (
-             <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead className="text-center">Level</TableHead>
-                        <TableHead className="text-center">XP</TableHead>
-                        <TableHead>Badges</TableHead>
-                        <TableHead>Joined On</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {users.map((user) => (
-                        <TableRow key={String(user._id)}>
-                            <TableCell className="font-medium">{user.name}</TableCell>
-                            <TableCell>{user.email}</TableCell>
-                            <TableCell className="text-center">{user.level}</TableCell>
-                            <TableCell className="text-center">{user.xp}</TableCell>
-                            <TableCell>
-                                <div className="flex flex-wrap gap-1">
-                                    {user.badges.map(badge => (
-                                        <Badge key={badge} variant="secondary">{badge.replace(/_/g, ' ')}</Badge>
-                                    ))}
-                                </div>
-                            </TableCell>
-                            <TableCell>{formatDate(user.createdAt)}</TableCell>
-                        </TableRow>
-                    ))}
-                    {users.length === 0 && !error && (
+        if (isAuthenticated) {
+            return (
+                <Table>
+                    <TableHeader>
                         <TableRow>
-                           <TableCell colSpan={6} className="py-10 text-center">No users found.</TableCell>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead className="text-center">Level</TableHead>
+                            <TableHead className="text-center">XP</TableHead>
+                            <TableHead>Badges</TableHead>
+                            <TableHead>Joined On</TableHead>
                         </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        )
+                    </TableHeader>
+                    <TableBody>
+                        {users.map((user) => (
+                            <TableRow key={String(user._id)}>
+                                <TableCell className="font-medium">{user.name}</TableCell>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell className="text-center">{user.level}</TableCell>
+                                <TableCell className="text-center">{user.xp}</TableCell>
+                                <TableCell>
+                                    <div className="flex flex-wrap gap-1">
+                                        {user.badges.map(badge => (
+                                            <Badge key={badge} variant="secondary">{badge.replace(/_/g, ' ')}</Badge>
+                                        ))}
+                                    </div>
+                                </TableCell>
+                                <TableCell>{formatDate(user.createdAt)}</TableCell>
+                            </TableRow>
+                        ))}
+                        {users.length === 0 && !error && (
+                            <TableRow>
+                            <TableCell colSpan={6} className="py-10 text-center">No users found.</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            )
+        }
+
+        return null;
     }
 
     return (
@@ -164,7 +167,7 @@ export default function AdminPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-3xl">Admin Panel</CardTitle>
-                            <CardDescription>View all registered users and their progress.</CardDescription>
+                            <CardDescription>View all registered users and their progress. You must be logged in to see the content.</CardDescription>
                         </CardHeader>
                         <CardContent>
                            {renderContent()}
