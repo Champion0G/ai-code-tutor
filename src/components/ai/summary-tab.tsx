@@ -2,22 +2,28 @@
 "use client";
 
 import { useState } from "react";
-import { summarizeFileAndQA } from "@/ai/flows/summarize-file-and-qa";
 import { summarizeRepository } from "@/ai/flows/summarize-repository";
+import { answerFileQuestion } from "@/ai/flows/summarize-file-and-qa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookText, HelpCircle, FolderGit2, Sparkles } from "lucide-react";
+import { BookText, HelpCircle, FolderGit2, Sparkles, WandSparkles } from "lucide-react";
 import { Separator } from "../ui/separator";
 import type { FileNode } from "@/lib/mock-data";
 import { useGamification } from "@/contexts/gamification-context";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 
 interface SummaryTabProps {
   fileContent: string;
   fileName: string;
   fileTree: FileNode[];
   onSummary: () => void;
+}
+
+interface QnaPair {
+    question: string;
+    answer: string;
 }
 
 const exampleQuestions = [
@@ -27,58 +33,40 @@ const exampleQuestions = [
 ]
 
 export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: SummaryTabProps) {
-  const [fileResult, setFileResult] = useState<{ summary: string; answer: string } | null>(null);
-  const [repoSummary, setRepoSummary] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [qnaHistory, setQnaHistory] = useState<QnaPair[]>([]);
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRepoLoading, setIsRepoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { checkAndIncrementUsage } = useGamification();
 
-  const handleFileAction = async (isNewSummary: boolean, q?: string) => {
+  const handleGenerateSummary = async () => {
     const canProceed = await checkAndIncrementUsage();
     if (!canProceed) {
         setError("You have reached your daily AI usage limit.");
         return;
     }
-
-    const context = fileContent || repoSummary;
-    if (!context && !isRepoLoading) {
-      setError("Please summarize a file or repository before asking questions.");
-      return;
-    }
-
-    const currentQuestion = q || question;
-
+    
     setIsLoading(true);
     setError(null);
-    if (isNewSummary) {
-      setFileResult(null);
-      setRepoSummary(null);
-      setQuestion("");
-    }
+    setSummary(null);
+    setQnaHistory([]);
+    setQuestion("");
 
     try {
-      const response = await summarizeFileAndQA({
-        fileContent: context || "",
-        question: isNewSummary ? `Provide a summary of this file.` : currentQuestion,
-      });
-
-      if (isNewSummary) {
-        setFileResult(response);
-      } else {
-        setFileResult(prev => ({ summary: prev?.summary || "", answer: response.answer }));
-      }
-      
-      setQuestion(currentQuestion);
-      onSummary();
-    } catch (e) {
-      setError("Failed to process the file. Please try again.");
-      console.error(e);
+        const response = await answerFileQuestion({
+            context: fileContent,
+            question: "Provide a concise summary of this file.",
+        });
+        setSummary(response.answer);
+        onSummary();
+    } catch(e) {
+        setError("Failed to generate summary. Please try again.");
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+  }
 
   const handleRepoSummary = async () => {
     if (!fileTree || fileTree.length === 0) {
@@ -94,13 +82,12 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
 
     setIsRepoLoading(true);
     setError(null);
-    setFileResult(null);
-    setRepoSummary(null);
+    setSummary(null);
+    setQnaHistory([]);
 
     try {
         const response = await summarizeRepository({ fileTree });
-        setRepoSummary(response.summary);
-        setFileResult({ summary: response.summary, answer: "" });
+        setSummary(response.summary);
         onSummary();
     } catch(e) {
         setError("Failed to summarize repository. Please try again.");
@@ -109,52 +96,127 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
         setIsRepoLoading(false);
     }
   };
+
+  const handleAskQuestion = async (q?: string) => {
+    const currentQuestion = q || question;
+    if (!currentQuestion) return;
+
+    const canProceed = await checkAndIncrementUsage();
+    if (!canProceed) {
+      setError("You have reached your daily AI usage limit.");
+      return;
+    }
+
+    const context = summary || fileContent || "the current project";
+    if (!context) {
+      setError("Please generate a summary or select a file before asking questions.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await answerFileQuestion({ context, question: currentQuestion });
+      setQnaHistory(prev => [...prev, { question: currentQuestion, answer: response.answer }]);
+      setQuestion("");
+      onSummary(); // Award XP for asking a question
+    } catch(e) {
+      setError("Failed to get an answer. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
   
   const handleExampleClick = (example: string) => {
     setQuestion(example);
+    handleAskQuestion(example);
   }
 
-  const isLoadingFileSummary = isLoading && !fileResult;
-  const canAskQuestions = !!fileContent || !!repoSummary || fileTree.length > 0;
+  const isLoadingFileSummary = isLoading && !summary;
+  const canAskQuestions = !!fileContent || !!summary || fileTree.length > 0;
 
   return (
     <div className="flex flex-col h-full space-y-4">
       <div className="flex-shrink-0">
-        <h3 className="text-lg font-semibold">File & Repository Summary</h3>
+        <h3 className="text-lg font-semibold">Summary & Q&A</h3>
         <p className="text-sm text-muted-foreground">
-          Get a summary of the selected file (<strong>{fileName || "none"}</strong>) or the entire repository.
+          Generate a summary or ask specific questions about the selected file (<strong>{fileName || "none"}</strong>) or repository.
         </p>
       </div>
       
       <div className="flex-shrink-0 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <Button onClick={() => handleFileAction(true)} disabled={isLoading || isRepoLoading || !fileContent}>
-                <BookText className="mr-2 h-4 w-4" />
-                {isLoadingFileSummary ? "Summarizing File..." : "Summarize Current File"}
+            <Button onClick={handleGenerateSummary} disabled={isLoading || isRepoLoading || !fileContent}>
+                <WandSparkles className="mr-2 h-4 w-4" />
+                {isLoading && !isRepoLoading ? "Summarizing File..." : "Generate File Summary"}
             </Button>
             <Button onClick={handleRepoSummary} disabled={isRepoLoading || isLoading || fileTree.length === 0}>
                 <FolderGit2 className="mr-2 h-4 w-4" />
-                {isRepoLoading ? "Summarizing..." : "Summarize Repo/Folder"}
+                {isRepoLoading ? "Summarizing..." : "Summarize Repo"}
             </Button>
         </div>
-        
-        <div className="relative">
-            <Separator />
-            <div className="absolute inset-0 flex items-center">
-                <div className="mx-auto bg-card px-2 text-xs text-muted-foreground">OR</div>
-            </div>
-        </div>
+      </div>
 
+      <Separator className="my-4" />
+
+      <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-2 min-h-[200px]">
+        <ScrollArea className="h-full p-2">
+        {isLoading || isRepoLoading ? (
+            <div className="space-y-2 p-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+        ) : error ? (
+            <div className="text-destructive p-4">{error}</div>
+        ) : summary || qnaHistory.length > 0 ? (
+          <div className="space-y-4">
+            {summary && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                        <p>{summary}</p>
+                    </CardContent>
+                </Card>
+            )}
+            {qnaHistory.map((item, index) => (
+                <div key={index} className="space-y-2">
+                    <p className="font-semibold text-sm">Q: {item.question}</p>
+                    <p className="text-sm prose prose-sm dark:prose-invert max-w-none">{item.answer}</p>
+                    {index < qnaHistory.length -1 && <Separator />}
+                </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-muted-foreground text-center py-10">
+            Summaries and answers will appear here.
+          </div>
+        )}
+        </ScrollArea>
+      </div>
+      
+       <div className="flex-shrink-0 space-y-2">
+         <div className="flex flex-wrap gap-2">
+            {exampleQuestions.map((q) => (
+                <Button key={q} size="sm" variant="outline" className="text-xs" onClick={() => handleExampleClick(q)} disabled={isLoading || isRepoLoading || !canAskQuestions}>
+                    <Sparkles className="mr-2 h-3 w-3" />
+                    {q}
+                </Button>
+            ))}
+        </div>
         <form
             onSubmit={(e) => {
             e.preventDefault();
-            handleFileAction(false);
+            handleAskQuestion();
             }}
             className="flex w-full items-center space-x-2"
         >
             <Input
             type="text"
-            placeholder="Ask a question..."
+            placeholder="Ask a follow-up question..."
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             disabled={isLoading || isRepoLoading || !canAskQuestions}
@@ -164,61 +226,6 @@ export function SummaryTab({ fileContent, fileName, fileTree, onSummary }: Summa
             Ask
             </Button>
         </form>
-
-        <div className="flex flex-wrap gap-2">
-            {exampleQuestions.map((q) => (
-                <Button key={q} size="sm" variant="outline" className="text-xs" onClick={() => handleExampleClick(q)} disabled={isLoading || isRepoLoading || !canAskQuestions}>
-                    <Sparkles className="mr-2 h-3 w-3" />
-                    {q}
-                </Button>
-            ))}
-        </div>
-      </div>
-
-      <Separator className="my-4" />
-
-      <div className="flex-1 overflow-auto bg-muted/50 rounded-lg p-4 min-h-[150px]">
-        <ScrollArea className="h-full">
-        {isLoading || isRepoLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-            </div>
-        ) : error ? (
-            <div className="text-destructive">{error}</div>
-        ) : repoSummary && !fileContent ? (
-            <div>
-              <h4 className="font-semibold mb-2 text-base">Repository Summary:</h4>
-              <p className="text-sm whitespace-pre-wrap">{repoSummary}</p>
-              {fileResult?.answer && question && (
-                 <div>
-                    <Separator className="my-4" />
-                    <h4 className="font-semibold mb-2">Answer to "{question}":</h4>
-                    <p className="text-sm whitespace-pre-wrap">{fileResult.answer}</p>
-                 </div>
-              )}
-            </div>
-        ) : fileResult ? (
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-semibold mb-2">Summary for {fileName}:</h4>
-              <p className="text-sm whitespace-pre-wrap">{fileResult.summary}</p>
-            </div>
-            {fileResult.answer && question && (
-              <div>
-                <Separator className="my-4" />
-                <h4 className="font-semibold mb-2">Answer to "{question}":</h4>
-                <p className="text-sm whitespace-pre-wrap">{fileResult.answer}</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-muted-foreground text-center py-10">
-            Summary and answers will appear here.
-          </div>
-        )}
-        </ScrollArea>
       </div>
 
     </div>

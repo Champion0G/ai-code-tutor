@@ -1,64 +1,67 @@
 'use server';
 /**
- * @fileOverview A file summarization and question answering AI agent.
+ * @fileOverview An AI agent that answers questions about file content.
  *
- * - summarizeFileAndQA - A function that handles the file summarization and question answering process.
- * - SummarizeFileAndQAInput - The input type for the summarizeFileAndQA function.
- * - SummarizeFileAndQAOutput - The return type for the summarizeFileAndQA function.
+ * - answerFileQuestion - A function that handles answering a question about a file.
+ * - AnswerFileQuestionInput - The input type for the answerFileQuestion function.
+ * - AnswerFileQuestionOutput - The return type for the answerFileQuestion function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import cache from '@/services/cache';
 
-const SummarizeFileAndQAInputSchema = z.object({
-  fileContent: z
+const AnswerFileQuestionInputSchema = z.object({
+  context: z
     .string()
-    .describe('The content of the file to summarize and ask questions about.'),
+    .describe('The content of the file or repository summary to use as context.'),
   question: z.string().describe('The question to ask about the file content.'),
 });
-export type SummarizeFileAndQAInput = z.infer<typeof SummarizeFileAndQAInputSchema>;
+export type AnswerFileQuestionInput = z.infer<typeof AnswerFileQuestionInputSchema>;
 
-const SummarizeFileAndQAOutputSchema = z.object({
-  summary: z.string().describe('The summary of the file content.'),
+const AnswerFileQuestionOutputSchema = z.object({
   answer: z.string().describe('The answer to the question about the file content.'),
 });
-export type SummarizeFileAndQAOutput = z.infer<typeof SummarizeFileAndQAOutputSchema>;
+export type AnswerFileQuestionOutput = z.infer<typeof AnswerFileQuestionOutputSchema>;
 
-export async function summarizeFileAndQA(input: SummarizeFileAndQAInput): Promise<SummarizeFileAndQAOutput> {
+// This function was previously summarizeFileAndQA, but we are simplifying it
+// to better support a conversational Q&A flow.
+export async function answerFileQuestion(input: AnswerFileQuestionInput): Promise<AnswerFileQuestionOutput> {
+  // Use a more specific cache key that includes the question
   const cacheKey = cache.hash(input);
-  const cached = await cache.get<SummarizeFileAndQAOutput>(cacheKey);
+  const cached = await cache.get<AnswerFileQuestionOutput>(cacheKey);
   if (cached) {
     return cached;
   }
   
-  const result = await summarizeFileAndQAFlow(input);
+  const result = await answerFileQuestionFlow(input);
   await cache.set(cacheKey, result);
   return result;
 }
 
 const prompt = ai.definePrompt({
-  name: 'summarizeFileAndQAPrompt',
-  input: {schema: SummarizeFileAndQAInputSchema},
-  output: {schema: SummarizeFileAndQAOutputSchema},
-  prompt: `You are an AI assistant that summarizes files and answers questions about them.
+  name: 'answerFileQuestionPrompt',
+  input: {schema: AnswerFileQuestionInputSchema},
+  output: {schema: AnswerFileQuestionOutputSchema},
+  prompt: `You are an AI assistant that answers questions about a given context, which could be file content or a repository summary.
 
-  First, provide a summary for the following file content.
+  Context:
+  ---
+  {{{context}}}
+  ---
 
-  Then, provide an answer to the following question about the file content.
-
-  File Content: {{{fileContent}}}
+  Based on the context above, answer the following question.
 
   Question: {{{question}}}
 
-  Populate the 'summary' and 'answer' fields in your response.`,
+  Provide a clear and concise answer in the 'answer' field.`,
 });
 
-const summarizeFileAndQAFlow = ai.defineFlow(
+const answerFileQuestionFlow = ai.defineFlow(
   {
-    name: 'summarizeFileAndQAFlow',
-    inputSchema: SummarizeFileAndQAInputSchema,
-    outputSchema: SummarizeFileAndQAOutputSchema,
+    name: 'answerFileQuestionFlow',
+    inputSchema: AnswerFileQuestionInputSchema,
+    outputSchema: AnswerFileQuestionOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);
