@@ -130,10 +130,14 @@ export function ModeSelection() {
                     </CardFooter>
                 </Card>
             </div>
-            <div className="mt-12 text-center">
+            <div className="mt-12 text-center flex items-center justify-center gap-4">
                 <Link href="/support" className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
                     <LifeBuoy className="h-4 w-4" />
                     Contact Support
+                </Link>
+                 <span className="text-muted-foreground">|</span>
+                <Link href="/admin" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    Admin
                 </Link>
             </div>
         </div>
