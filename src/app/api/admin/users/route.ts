@@ -1,42 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
-import { safeError } from '@/lib/safe-error';
-import { User } from '@/models/user';
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export async function GET() {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-        return NextResponse.json({ success: false, message: 'Authentication required. Please log in.' }, { status: 401 });
-    }
-
-    try {
-        await jwtVerify(token, JWT_SECRET);
-    } catch (err) {
-        return NextResponse.json({ success: false, message: 'Your session has expired or is invalid. Please log in again.' }, { status: 401 });
-    }
-
-    const client = await clientPromise;
-    const db = client.db("ai-code-tutor");
-    const usersCollection = db.collection<User>('users');
-
-    // Fetch all users, but exclude the password field for security.
-    const users = await usersCollection.find({}, {
-        projection: { password: 0, resetPasswordToken: 0, resetPasswordExpires: 0 }
-    }).toArray();
-
-    return NextResponse.json({ success: true, users }, { status: 200 });
-
-  } catch (error) {
-    console.error('Failed to fetch users:', error);
-    const safe = safeError(error);
-    return NextResponse.json({ success: false, message: 'An internal server error occurred.', error: safe.message }, { status: 500 });
-  }
+    return NextResponse.json({ message: 'Not Found' }, { status: 404 });
 }

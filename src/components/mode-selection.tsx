@@ -135,10 +135,6 @@ export function ModeSelection() {
                     <LifeBuoy className="h-4 w-4" />
                     Contact Support
                 </Link>
-                 <span className="text-muted-foreground">|</span>
-                <Link href="/admin" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    Admin
-                </Link>
             </div>
         </div>
       </main>
