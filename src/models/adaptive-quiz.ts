@@ -10,20 +10,20 @@ export const QuizDifficultySchema = z.enum([
 export type QuizDifficulty = z.infer<typeof QuizDifficultySchema>;
 
 const McqQuestionSchema = z.object({
-    type: z.literal("mcq"),
+    type: z.enum(["mcq"]).describe("The type of the question."),
     question: z.string().describe("The multiple-choice question."),
     options: z.array(z.string()).min(4).max(4).describe("An array of exactly 4 possible answers."),
     correctAnswer: z.string().describe("The correct answer from the options."),
 });
 
 const TrueFalseQuestionSchema = z.object({
-    type: z.literal("true-false"),
+    type: z.enum(["true-false"]).describe("The type of the question."),
     question: z.string().describe("A statement that is either true or false."),
     correctAnswer: z.boolean().describe("Whether the statement is true or false."),
 });
 
 const ShortAnswerQuestionSchema = z.object({
-    type: z.literal("short-answer"),
+    type: z.enum(["short-answer"]).describe("The type of the question."),
     question: z.string().describe("A question that requires a brief, open-ended answer."),
     idealAnswer: z.string().describe("The ideal or model answer to the question for evaluation."),
 });
