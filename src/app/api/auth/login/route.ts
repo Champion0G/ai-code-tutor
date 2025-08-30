@@ -42,14 +42,14 @@ export async function POST(req: Request) {
     const token = await new SignJWT({ userId: user._id, email: user.email })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('1h')
+      .setExpirationTime('24h')
       .sign(JWT_SECRET);
 
     const cookieStore = await cookies();
     cookieStore.set('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60,
+        maxAge: 24 * 60 * 60, // 24 hours
         path: '/',
     });
 
