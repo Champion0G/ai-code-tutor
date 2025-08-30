@@ -78,50 +78,7 @@ const answerTopicQuestionFlow = ai.defineFlow(
     outputSchema: AnswerTopicQuestionOutputSchema,
   },
   async input => {
-    const response = await ai.generate({
-      prompt: `You are an expert programming tutor. The user has been presented with a lesson and now has a specific question about it.
-
-Your task is to answer the user's question by breaking down the topic into more depth, using analogies and clear, well-structured sections. Make it engaging and fun to read, not just a wall of text.
-Use Markdown formatting for the content of each section (e.g., headings, lists, bold text, code blocks) to ensure it is reader-friendly.
-
-Lesson Content:
----
-${input.lessonContent}
----
-
-User Question: ${input.userQuestion}
-
-Please provide your answer in the following JSON format:
-{
-  "title": "An engaging title for the answer",
-  "introduction": "A short, engaging introduction to the answer",
-  "sections": [
-    {
-      "title": "Section title",
-      "content": "Detailed content in Markdown format",
-      "analogy": "Optional relatable analogy"
-    }
-  ],
-  "conclusion": "A concluding summary that wraps up the answer"
-}`,
-      model: 'googleai/gemini-1.5-flash-latest',
-    });
-    
-    // Parse the response as JSON
-    try {
-      const parsed = JSON.parse(response.text());
-      return parsed as AnswerTopicQuestionOutput;
-    } catch (e) {
-      // Fallback response
-      return {
-        title: "Answer",
-        introduction: response.text().substring(0, 200),
-        sections: [{
-          title: "Response",
-          content: response.text(),
-        }],
-        conclusion: "Hope this helps!"
-      };
-    }
+    const {output} = await prompt(input);
+    return output!;
   }
 );
