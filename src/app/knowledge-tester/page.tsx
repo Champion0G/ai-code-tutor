@@ -10,7 +10,7 @@ import { ChevronLeft, Loader2, TestTube } from 'lucide-react';
 import { Header } from '@/components/header';
 import { useGamification } from '@/contexts/gamification-context';
 import { generateAdaptiveQuizAction } from '@/app/actions/generate-adaptive-quiz-action';
-import type { GenerateAdaptiveQuizOutput, QuizDifficulty } from '@/ai/flows/generate-adaptive-quiz';
+import type { GenerateAdaptiveQuizOutput, QuizDifficulty } from '@/models/adaptive-quiz';
 
 const difficultyLevels: QuizDifficulty[] = [
     "Beginner (Recall)",

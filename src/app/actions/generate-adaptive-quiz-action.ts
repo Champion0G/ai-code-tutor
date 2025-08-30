@@ -1,8 +1,9 @@
+
 'use server';
 
 import { generateAdaptiveQuiz } from "@/ai/flows/generate-adaptive-quiz";
 import { safeError } from "@/lib/safe-error";
-import type { GenerateAdaptiveQuizInput } from "@/ai/flows/generate-adaptive-quiz";
+import type { GenerateAdaptiveQuizInput } from "@/models/adaptive-quiz";
 
 
 export async function generateAdaptiveQuizAction(input: GenerateAdaptiveQuizInput) {
