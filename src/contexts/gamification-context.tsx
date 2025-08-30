@@ -39,6 +39,7 @@ interface GamificationContextType {
   badges: Badge[];
   name: string;
   email: string;
+  userRole: 'user' | 'admin';
   isLoaded: boolean;
   aiUsageCount: number;
   aiUsageLimit: number;
@@ -253,6 +254,7 @@ export const GamificationProvider = ({ children }: { children: ReactNode }) => {
         badges: mappedBadges, 
         name: user?.name ?? "Guest", 
         email: user?.email ?? "", 
+        userRole: user?.role ?? 'user',
         isLoaded, 
         aiUsageCount,
         aiUsageLimit,

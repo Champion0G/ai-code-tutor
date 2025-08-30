@@ -48,10 +48,13 @@ export async function POST(req: Request) {
 
     try {
         const now = new Date();
+        const isAdmin = email === 'techchampion8@gmail.com';
+
         const result = await db.collection('users').insertOne({
             name,
             email,
             password: hashedPassword,
+            role: isAdmin ? 'admin' : 'user',
             level: 1,
             xp: 0,
             badges: [],

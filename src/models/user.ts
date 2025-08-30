@@ -9,6 +9,7 @@ export interface User {
   name: string;
   email: string;
   password?: string; // Will be stripped out for client-side objects
+  role: 'user' | 'admin';
   level: number;
   xp: number;
   badges: BadgeName[];
