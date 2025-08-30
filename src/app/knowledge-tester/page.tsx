@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, TestTube, Award } from 'lucide-react';
+import { ChevronLeft, Loader2, TestTube, Award, ArrowUp, ArrowDown, Repeat } from 'lucide-react';
 import { Header } from '@/components/header';
 import { useGamification } from '@/contexts/gamification-context';
 import { generateAdaptiveQuizAction } from '@/app/actions/generate-adaptive-quiz-action';
@@ -55,6 +55,7 @@ function KnowledgeTesterView() {
       const result = await generateAdaptiveQuizAction({ topic, difficulty });
       if (result.success && result.quiz) {
         setQuiz(result.quiz);
+        addXp(10);
         setQuizKey(prev => prev + 1); // Force re-mount of QuizView
       } else {
         throw new Error(result.message || "Failed to generate the test.");
@@ -74,7 +75,46 @@ function KnowledgeTesterView() {
 
   const handleQuizCompletion = (finalScore: number, totalQuestions: number) => {
       setQuizScore({ score: finalScore, total: totalQuestions });
-      // In the next step, we'll add logic here to adapt the difficulty.
+      const percentage = (finalScore / totalQuestions) * 100;
+      if (percentage >= 90) addBadge("Expert_Learner");
+  }
+
+  const getNextDifficulty = (up: boolean): QuizDifficulty | null => {
+      const currentIndex = difficultyLevels.indexOf(currentDifficulty);
+      const nextIndex = up ? currentIndex + 1 : currentIndex - 1;
+      if (nextIndex >= 0 && nextIndex < difficultyLevels.length) {
+          return difficultyLevels[nextIndex];
+      }
+      return null;
+  }
+
+  const renderAdaptiveButtons = () => {
+      if (!quizScore) return null;
+
+      const percentage = (quizScore.score / quizScore.total) * 100;
+      const canGoUp = percentage >= 80 && getNextDifficulty(true);
+      const canGoDown = percentage < 50 && getNextDifficulty(false);
+
+      return (
+         <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => handleGenerateTest(currentDifficulty)}>
+                <Repeat className="mr-2 h-4 w-4" />
+                Try Same Level Again
+            </Button>
+            {canGoUp && (
+                <Button size="sm" variant="success" onClick={() => handleGenerateTest(canGoUp)}>
+                    <ArrowUp className="mr-2 h-4 w-4" />
+                    Advance to {canGoUp.split(' ')[0]}
+                </Button>
+            )}
+            {canGoDown && (
+                <Button size="sm" variant="secondary" onClick={() => handleGenerateTest(canGoDown)}>
+                    <ArrowDown className="mr-2 h-4 w-4" />
+                    Review on {canGoDown.split(' ')[0]}
+                </Button>
+            )}
+        </div>
+      )
   }
 
   return (
@@ -122,7 +162,7 @@ function KnowledgeTesterView() {
             </div>
           )}
 
-          {quiz && (
+          {quiz && !quizScore && (
             <QuizView
                 key={quizKey}
                 quiz={quiz}
@@ -131,16 +171,13 @@ function KnowledgeTesterView() {
             />
           )}
 
-          {quizScore && !isLoading && (
+          {quizScore && (
                 <Alert variant="default" className="border-primary">
                     <Award className="h-4 w-4" />
                     <AlertTitle>Quiz Result</AlertTitle>
                     <AlertDescription>
-                        You scored {quizScore.score} out of {quizScore.total}. {quizScore.score / quizScore.total > 0.7 ? "Great job!" : "Keep practicing!"}
-                        <div className="mt-4 flex gap-2">
-                            <Button size="sm" onClick={() => handleGenerateTest(currentDifficulty)}>Try Same Level Again</Button>
-                            {/* We will add adaptive buttons here in the next step */}
-                        </div>
+                        You scored {quizScore.score} out of {quizScore.total}. {quizScore.score / quizScore.total >= 0.8 ? "Great job!" : "Keep practicing!"}
+                        {renderAdaptiveButtons()}
                     </AlertDescription>
                 </Alert>
           )}

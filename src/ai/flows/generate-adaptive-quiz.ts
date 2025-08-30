@@ -38,10 +38,10 @@ Difficulty Level: {{{difficulty}}}
 - **Expert (Create/Evaluate):** Focus on scenario-based reasoning or mini-project-like questions. Ask the user to design, evaluate, or critique something. (e.g., "Design a basic rate-limiting strategy for a public API. What are its pros and cons?")
 
 **Instructions:**
-1. Create a quiz with a suitable title.
+1. Create a quiz with a suitable title that reflects the topic and difficulty.
 2. Generate exactly 5 questions.
-3. The questions should be a mix of types: multiple-choice ('mcq'), true/false ('true-false'), and short-answer ('short-answer').
-4. The questions must strictly match the requested difficulty level.
+3. The questions should be a mix of types: multiple-choice ('mcq'), true/false ('true-false'), and short-answer ('short-answer'). Ensure there is at least one of each type.
+4. The questions must strictly match the requested difficulty level. For 'short-answer', provide a clear 'idealAnswer' for evaluation.
 
 Generate the quiz now.`,
 });
