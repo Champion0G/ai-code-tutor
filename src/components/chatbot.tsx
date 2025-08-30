@@ -39,6 +39,7 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { checkAndIncrementUsage } = useGamification();
+  const [hasActiveResponse, setHasActiveResponse] = useState(false);
 
 
   useEffect(() => {
@@ -82,6 +83,7 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
 
       const aiMessage: Message = { id: Date.now() + 1, text: response.answer || "No response received", isUser: false };
       setMessages(prev => [...prev, aiMessage]);
+      setHasActiveResponse(true);
     } catch(e: any) {
       console.error("Chatbot error:", e);
       const errorMessage: Message = { id: Date.now() + 1, text: "Sorry, I encountered an error. Please try again.", isUser: false };
@@ -104,6 +106,7 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
       const response = await askSocraticQuestion(socraticPreamble);
       const aiMessage: Message = { id: Date.now() + 1, text: response, isUser: false };
       setMessages(prev => [...prev, aiMessage]);
+      setHasActiveResponse(true);
     } catch (e: any) {
        console.error("Chatbot socratic error:", e);
        const errorMessage: Message = { id: Date.now() + 1, text: "Sorry, I couldn't generate a socratic question right now.", isUser: false };
@@ -127,7 +130,10 @@ export default function Chatbot({ lessonContext, askSocraticQuestion }: ChatbotP
       <PopoverContent
         side="top"
         align="end"
-        className="w-[400px] h-[500px] flex flex-col p-0 mr-4 mb-2"
+        className={cn(
+            "flex flex-col p-0 mr-4 mb-2 rounded-lg transition-all duration-300 ease-in-out",
+            hasActiveResponse ? "w-[450px] h-[600px]" : "w-[400px] h-[500px]"
+        )}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <header className="p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
