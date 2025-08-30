@@ -89,7 +89,7 @@ function KnowledgeTesterView() {
   }
 
   const renderAdaptiveButtons = () => {
-      if (!quizScore) return null;
+      if (!quizScore || quizScore.total === 0) return null;
 
       const percentage = (quizScore.score / quizScore.total) * 100;
       const canGoUp = percentage >= 80 && getNextDifficulty(true);
