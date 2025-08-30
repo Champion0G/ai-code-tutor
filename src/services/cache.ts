@@ -8,15 +8,6 @@ const CACHE_TTL = 60 * 60; // 1 hour
 
 let redis: Redis | null = null;
 
-// if (process.env.DISABLE_CACHE !== "true") {
-//   redis = new Redis(process.env.REDIS_URL as string);
-// } else {
-//   redis = {
-//     get: async () => null,
-//     set: async () => null,
-//   };
-// }
-
 function getClient(): Redis | null {
   if (process.env.REDIS_URL && process.env.DISABLE_CACHE !== "true") {
     if (!redis) {
@@ -34,7 +25,8 @@ function getClient(): Redis | null {
     }
     return redis;
   }
-  console.warn("REDIS_URL not set or caching disabled. Using memory cache.");
+  // This warning was removed as it was firing even when redis was disabled.
+  // console.warn("REDIS_URL not set or caching disabled. Using memory cache.");
   return null;
 }
 
@@ -119,5 +111,13 @@ export const memory = {
     }
 }
 
-const exportedCache = getClient() ? { get, set, hash } : { get: memory.get, set: memory.set, hash };
+// The logic for determining which cache to use should check if caching is disabled first.
+const useRedis = process.env.REDIS_URL && process.env.DISABLE_CACHE !== "true";
+
+const exportedCache = {
+  get: useRedis ? get : memory.get,
+  set: useRedis ? set : memory.set,
+  hash,
+};
+
 export default exportedCache;
