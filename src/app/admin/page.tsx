@@ -13,7 +13,6 @@ import { Terminal, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { useGamification } from '@/contexts/gamification-context';
 
 async function getUsers(): Promise<{ success: boolean; users?: User[]; message?: string, status?: number }> {
     try {
@@ -31,11 +30,8 @@ export default function AdminPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAuthorized, setIsAuthorized] = useState(false);
-    const { email: userEmail, isLoaded } = useGamification();
 
     useEffect(() => {
-        if (!isLoaded) return;
-
         const fetchUsers = async () => {
             setIsLoading(true);
             const result = await getUsers();
@@ -51,7 +47,7 @@ export default function AdminPage() {
             setIsLoading(false);
         };
         fetchUsers();
-    }, [isLoaded, userEmail]);
+    }, []);
 
     const formatDate = (date: Date | string) => {
         return new Date(date).toLocaleDateString('en-US', {
@@ -62,7 +58,7 @@ export default function AdminPage() {
     }
 
     const renderContent = () => {
-        if (isLoading || !isLoaded) {
+        if (isLoading) {
             return (
                  <Table>
                     <TableHeader>
