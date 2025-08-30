@@ -15,18 +15,18 @@ export async function GET() {
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
-        return NextResponse.json({ success: false, message: 'Authentication required.' }, { status: 401 });
+        return NextResponse.json({ success: false, message: 'Authentication required. Please log in.' }, { status: 401 });
     }
 
     let decoded;
     try {
         decoded = await jwtVerify(token, JWT_SECRET);
     } catch (err) {
-        return NextResponse.json({ success: false, message: 'Invalid token.' }, { status: 401 });
+        return NextResponse.json({ success: false, message: 'Your session has expired or is invalid. Please log in again.' }, { status: 401 });
     }
 
     if (decoded.payload.email !== ADMIN_EMAIL) {
-        return NextResponse.json({ success: false, message: 'Access denied. You are not authorized to view this page.' }, { status: 403 });
+        return NextResponse.json({ success: false, message: 'You are not authorized to view this page.' }, { status: 403 });
     }
 
     const client = await clientPromise;

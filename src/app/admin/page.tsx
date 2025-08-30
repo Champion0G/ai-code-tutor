@@ -21,7 +21,7 @@ async function getUsers(): Promise<{ success: boolean; users?: User[]; message?:
         return { ...data, status: response.status };
     } catch (error) {
         console.error("Failed to fetch users:", error);
-        return { success: false, message: "An unexpected error occurred." };
+        return { success: false, message: "An unexpected error occurred.", status: 500 };
     }
 }
 
@@ -29,18 +29,22 @@ export default function AdminPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
             setIsLoading(true);
+            setIsAuthorized(null);
+            setError(null);
+            
             const result = await getUsers();
+
             if (result.success && result.users) {
                 setUsers(result.users);
                 setIsAuthorized(true);
             } else {
                 setError(result.message || "Failed to load user data.");
-                if (result.status === 403 || result.status === 401) {
+                if (result.status === 401 || result.status === 403) {
                     setIsAuthorized(false);
                 }
             }
@@ -87,17 +91,17 @@ export default function AdminPage() {
             )
         }
 
-        if (!isAuthorized) {
+        if (isAuthorized === false) {
             return (
                  <Alert variant="destructive">
                     <ShieldAlert className="h-4 w-4" />
                     <AlertTitle>Access Denied</AlertTitle>
-                    <AlertDescription>{error || "You are not authorized to view this page."}</AlertDescription>
+                    <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )
         }
 
-        if (error) {
+        if (error && isAuthorized !== false) {
              return (
                 <Alert variant="destructive">
                     <Terminal className="h-4 w-4" />
@@ -136,7 +140,7 @@ export default function AdminPage() {
                             <TableCell>{formatDate(user.createdAt)}</TableCell>
                         </TableRow>
                     ))}
-                    {!isLoading && users.length === 0 && !error && (
+                    {users.length === 0 && !error && (
                         <TableRow>
                            <TableCell colSpan={6} className="py-10 text-center">No users found.</TableCell>
                         </TableRow>
