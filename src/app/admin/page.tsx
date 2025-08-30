@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, ShieldAlert, ChevronLeft } from 'lucide-react';
 import { User } from '@/models/user';
 import { Badge } from '@/components/ui/badge';
+import { useGamification } from '@/contexts/gamification-context';
 
 type UserData = Omit<User, 'password'>;
 
@@ -18,9 +19,13 @@ export default function AdminPage() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { userRole, isLoaded } = useGamification();
 
     useEffect(() => {
+        if (!isLoaded) return; // Wait for gamification context to be loaded
+
         const fetchUsers = async () => {
+            setIsLoading(true);
             try {
                 const response = await fetch('/api/admin/users');
                 const data = await response.json();
@@ -36,12 +41,19 @@ export default function AdminPage() {
                 setIsLoading(false);
             }
         };
+        
+        // Only fetch if user is admin, otherwise set error
+        if (userRole === 'admin') {
+            fetchUsers();
+        } else {
+            setError('Access Denied: You are not authorized to view this page.');
+            setIsLoading(false);
+        }
 
-        fetchUsers();
-    }, []);
+    }, [userRole, isLoaded]);
 
     const renderContent = () => {
-        if (isLoading) {
+        if (isLoading || !isLoaded) {
             return (
                 <div className="flex items-center justify-center py-12">
                     <Loader2 className="mr-2 h-8 w-8 animate-spin" />

@@ -145,10 +145,10 @@ function MainNav({ closeSidebar }: { closeSidebar?: () => void }) {
 }
 
 export function Header({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
-  const { xp, level, badges, levelUpXp, isLoaded, aiUsageCount, aiUsageLimit } = useGamification();
+  const { xp, level, badges, levelUpXp, isLoaded, aiUsageCount, aiUsageLimit, email } = useGamification();
   const [isNavOpen, setIsNavOpen] = useState(false);
 
-  const isLoggedIn = !!useGamification().email;
+  const isLoggedIn = !!email;
   const remainingUsage = aiUsageLimit - aiUsageCount;
 
   return (
