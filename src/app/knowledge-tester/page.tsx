@@ -6,11 +6,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, Loader2, TestTube } from 'lucide-react';
+import { ChevronLeft, Loader2, TestTube, Award } from 'lucide-react';
 import { Header } from '@/components/header';
 import { useGamification } from '@/contexts/gamification-context';
 import { generateAdaptiveQuizAction } from '@/app/actions/generate-adaptive-quiz-action';
 import type { GenerateAdaptiveQuizOutput, QuizDifficulty } from '@/models/adaptive-quiz';
+import { QuizView } from '@/components/quiz-view';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const difficultyLevels: QuizDifficulty[] = [
     "Beginner (Recall)",
@@ -25,6 +27,9 @@ function KnowledgeTesterView() {
   const [quiz, setQuiz] = useState<GenerateAdaptiveQuizOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quizScore, setQuizScore] = useState<{ score: number, total: number } | null>(null);
+  const [quizKey, setQuizKey] = useState(0);
+
 
   const { addXp, addBadge, checkAndIncrementUsage } = useGamification();
 
@@ -43,12 +48,14 @@ function KnowledgeTesterView() {
     setIsLoading(true);
     setError(null);
     setQuiz(null);
+    setQuizScore(null);
     setCurrentDifficulty(difficulty);
 
     try {
       const result = await generateAdaptiveQuizAction({ topic, difficulty });
       if (result.success && result.quiz) {
         setQuiz(result.quiz);
+        setQuizKey(prev => prev + 1); // Force re-mount of QuizView
       } else {
         throw new Error(result.message || "Failed to generate the test.");
       }
@@ -59,6 +66,16 @@ function KnowledgeTesterView() {
       setIsLoading(false);
     }
   };
+
+  const handleCorrectAnswer = () => {
+    addXp(25);
+    addBadge("Quiz_Whiz");
+  }
+
+  const handleQuizCompletion = (finalScore: number, totalQuestions: number) => {
+      setQuizScore({ score: finalScore, total: totalQuestions });
+      // In the next step, we'll add logic here to adapt the difficulty.
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
@@ -81,7 +98,7 @@ function KnowledgeTesterView() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={(e) => { e.preventDefault(); handleGenerateTest(currentDifficulty); }} className="flex flex-col sm:flex-row gap-2">
+              <form onSubmit={(e) => { e.preventDefault(); handleGenerateTest("Intermediate (Apply)"); }} className="flex flex-col sm:flex-row gap-2">
                 <Input
                   placeholder="e.g., 'React State Management', 'Cybersecurity Fundamentals'"
                   value={topic}
@@ -99,22 +116,33 @@ function KnowledgeTesterView() {
           {error && <div className="text-destructive text-center py-10">{error}</div>}
 
           {isLoading && (
-            <div className='text-center'>
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-muted-foreground mt-2">Generating your test for: {currentDifficulty}</p>
+            <div className='text-center py-10'>
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+              <p className="text-muted-foreground mt-2">Generating your {currentDifficulty.split(' ')[0]} level test...</p>
             </div>
           )}
 
           {quiz && (
-            <div>
-              <h2 className="text-2xl font-bold text-center mb-4">{quiz.title}</h2>
-              <p className="text-center text-muted-foreground mb-8">
-                This is a placeholder for the adaptive quiz view. We will build this next.
-              </p>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-                <code>{JSON.stringify(quiz, null, 2)}</code>
-              </pre>
-            </div>
+            <QuizView
+                key={quizKey}
+                quiz={quiz}
+                onCorrectAnswer={handleCorrectAnswer}
+                onQuizComplete={handleQuizCompletion}
+            />
+          )}
+
+          {quizScore && !isLoading && (
+                <Alert variant="default" className="border-primary">
+                    <Award className="h-4 w-4" />
+                    <AlertTitle>Quiz Result</AlertTitle>
+                    <AlertDescription>
+                        You scored {quizScore.score} out of {quizScore.total}. {quizScore.score / quizScore.total > 0.7 ? "Great job!" : "Keep practicing!"}
+                        <div className="mt-4 flex gap-2">
+                            <Button size="sm" onClick={() => handleGenerateTest(currentDifficulty)}>Try Same Level Again</Button>
+                            {/* We will add adaptive buttons here in the next step */}
+                        </div>
+                    </AlertDescription>
+                </Alert>
           )}
 
         </div>

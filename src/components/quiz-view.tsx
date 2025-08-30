@@ -9,27 +9,39 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GenerateQuizOutput } from "@/ai/flows/generate-quiz";
+import type { GenerateAdaptiveQuizOutput } from "@/models/adaptive-quiz";
+import { Textarea } from "./ui/textarea";
+
+type AnyQuiz = GenerateQuizOutput | GenerateAdaptiveQuizOutput;
 
 interface QuizViewProps {
-  quiz: GenerateQuizOutput;
+  quiz: AnyQuiz;
   onCorrectAnswer: () => void;
   onQuizComplete?: (score: number, totalQuestions: number) => void;
 }
 
 export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProps) {
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string | null>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string | boolean | null>>({});
   const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
   const currentQuestionIndex = Object.keys(submittedAnswers).length;
-  const currentQuestion = quiz?.questions[currentQuestionIndex];
+  const currentQuestion = quiz.questions[currentQuestionIndex];
   const selectedAnswer = selectedAnswers[currentQuestionIndex];
 
   const handleSubmit = () => {
-    if (!selectedAnswer || !currentQuestion) return;
+    if (selectedAnswer === undefined || selectedAnswer === null || !currentQuestion) return;
 
-    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    let isCorrect = false;
+    if (currentQuestion.type === 'mcq' || currentQuestion.type === 'true-false') {
+        isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    } else {
+        // For short-answer, we can just mark as correct for now for XP.
+        // A more advanced version could use AI for grading.
+        isCorrect = true; 
+    }
+
     if (isCorrect) {
       setScore(s => s + 1);
       onCorrectAnswer();
@@ -73,8 +85,6 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
   }
 
   if (!currentQuestion) {
-      // This can happen if the quiz has no questions or after finishing.
-      // A more robust UI might show a summary or a "Generate new quiz" button.
       return (
            <div className="text-muted-foreground text-center py-10">
               Quiz finished or no questions available.
@@ -83,46 +93,104 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
   }
   
   const isSubmitted = submittedAnswers[currentQuestionIndex];
-  const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+  
+  const renderQuestionBody = () => {
+      switch (currentQuestion.type) {
+          case 'mcq':
+            const isMcqCorrect = isSubmitted && selectedAnswer === currentQuestion.correctAnswer;
+            return (
+                <RadioGroup
+                    onValueChange={(value) => setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
+                    value={selectedAnswer as string || ""}
+                    disabled={isSubmitted}
+                    >
+                    {currentQuestion.options.map((option) => (
+                        <Label
+                        key={option}
+                        className={cn(
+                            "flex items-center gap-4 rounded-lg border p-3 cursor-pointer transition-all hover:bg-muted/50",
+                            isSubmitted && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
+                            isSubmitted && option !== currentQuestion.correctAnswer && selectedAnswer === option && "border-red-500 bg-red-500/10",
+                        )}
+                        >
+                        <RadioGroupItem value={option} id={`${currentQuestionIndex}-${option}`} />
+                        <span>{option}</span>
+                        </Label>
+                    ))}
+                    </RadioGroup>
+            )
+          case 'true-false':
+            const isTfCorrect = isSubmitted && selectedAnswer === currentQuestion.correctAnswer;
+            return (
+                <RadioGroup
+                    onValueChange={(value) => setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: value === 'true' }))}
+                    value={typeof selectedAnswer === 'boolean' ? String(selectedAnswer) : ""}
+                    disabled={isSubmitted}
+                    className="flex gap-4"
+                    >
+                     <Label className={cn("flex-1 flex items-center gap-4 rounded-lg border p-3 cursor-pointer transition-all hover:bg-muted/50", isSubmitted && currentQuestion.correctAnswer === true && "border-green-500 bg-green-500/10", isSubmitted && selectedAnswer === true && currentQuestion.correctAnswer === false && "border-red-500 bg-red-500/10")}>
+                        <RadioGroupItem value="true" id={`${currentQuestionIndex}-true`} /> True
+                    </Label>
+                    <Label className={cn("flex-1 flex items-center gap-4 rounded-lg border p-3 cursor-pointer transition-all hover:bg-muted/50", isSubmitted && currentQuestion.correctAnswer === false && "border-green-500 bg-green-500/10", isSubmitted && selectedAnswer === false && currentQuestion.correctAnswer === true && "border-red-500 bg-red-500/10")}>
+                        <RadioGroupItem value="false" id={`${currentQuestionIndex}-false`} /> False
+                    </Label>
+                </RadioGroup>
+            )
+          case 'short-answer':
+            return (
+                <Textarea 
+                    placeholder="Type your answer here..."
+                    rows={4}
+                    onChange={(e) => setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: e.target.value }))}
+                    value={selectedAnswer as string || ""}
+                    disabled={isSubmitted}
+                />
+            )
+          default:
+              return null;
+      }
+  }
+
+  const renderFeedback = () => {
+    if (!isSubmitted) return null;
+
+    let isCorrect = false;
+    let correctAnswerText = '';
+
+    if (currentQuestion.type === 'mcq' || currentQuestion.type === 'true-false') {
+        isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+        correctAnswerText = `The correct answer is: ${String(currentQuestion.correctAnswer)}`;
+    } else {
+        isCorrect = true; // Auto-correct for now
+        correctAnswerText = `Ideal Answer: ${currentQuestion.idealAnswer}`;
+    }
+
+    return (
+         <div className={cn(
+            "flex items-start gap-2 p-2 rounded-md w-full mb-4 text-sm",
+            isCorrect ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300" : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
+          )}>
+            {isCorrect ? <CheckCircle className="h-5 w-5 mt-0.5" /> : <XCircle className="h-5 w-5 mt-0.5" />}
+            <p className="font-medium flex-1">{isCorrect ? (currentQuestion.type === 'short-answer' ? correctAnswerText : "Correct!") : correctAnswerText}</p>
+          </div>
+    )
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base leading-relaxed">{currentQuestionIndex + 1}. {currentQuestion.question}</CardTitle>
-        <CardDescription>Select one of the options below. ({currentQuestionIndex + 1}/{quiz.questions.length})</CardDescription>
+        <CardDescription>
+            Select one of the options below. ({currentQuestionIndex + 1}/{quiz.questions.length})
+            <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary">{currentQuestion.type.replace('-', ' ')}</span>
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <RadioGroup
-          onValueChange={(value) => setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
-          value={selectedAnswer || ""}
-          disabled={isSubmitted}
-        >
-          {currentQuestion.options.map((option) => (
-            <Label
-              key={option}
-              className={cn(
-                "flex items-center gap-4 rounded-lg border p-3 cursor-pointer transition-all hover:bg-muted/50",
-                 isSubmitted && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
-                 isSubmitted && option !== currentQuestion.correctAnswer && selectedAnswer === option && "border-red-500 bg-red-500/10",
-              )}
-            >
-              <RadioGroupItem value={option} id={`${currentQuestionIndex}-${option}`} />
-              <span>{option}</span>
-            </Label>
-          ))}
-        </RadioGroup>
+        {renderQuestionBody()}
       </CardContent>
       <CardFooter className="flex flex-col items-start">
-        {isSubmitted && (
-          <div className={cn(
-            "flex items-center gap-2 p-2 rounded-md w-full mb-4 text-sm",
-            isCorrect ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300" : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
-          )}>
-            {isCorrect ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-            <p className="font-medium">{isCorrect ? "Correct!" : `Not quite. The correct answer is: ${currentQuestion.correctAnswer}`}</p>
-          </div>
-        )}
-        <Button onClick={handleSubmit} disabled={!selectedAnswer} className="w-full">
+        {renderFeedback()}
+        <Button onClick={handleSubmit} disabled={selectedAnswer === null || selectedAnswer === undefined || selectedAnswer === ''} className="w-full">
             {isSubmitted ? 'Next Question' : 'Submit'}
         </Button>
       </CardFooter>
