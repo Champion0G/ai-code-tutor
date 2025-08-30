@@ -15,3 +15,4 @@ import '@/ai/flows/answer-topic-question.ts';
 import '@/ai/flows/generate-universal-lesson.ts';
 import '@/ai/flows/get-feedback-on-summary.ts';
 import '@/ai/flows/summarize-repository.ts';
+import '@/ai/flows/generate-adaptive-quiz.ts';

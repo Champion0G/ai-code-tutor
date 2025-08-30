@@ -14,7 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
-import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot, Coins, Infinity } from "lucide-react";
+import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot, Coins, Infinity, TestTube } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Separator } from "./ui/separator";
 import { useRouter } from "next/navigation";
@@ -77,6 +77,10 @@ function MainNav({ closeSidebar }: { closeSidebar?: () => void }) {
                     <button onClick={() => handleLinkClick('/universal-tutor')} className={cn(navLinkClasses)}>
                         <BrainCircuit className="h-4 w-4" />
                         Universal Tutor
+                    </button>
+                    <button onClick={() => handleLinkClick('/knowledge-tester')} className={cn(navLinkClasses)}>
+                        <TestTube className="h-4 w-4" />
+                        Knowledge Tester
                     </button>
                     <Separator className="my-2" />
                     <h3 className="px-3 text-sm font-semibold text-muted-foreground/80">Account</h3>
