@@ -26,10 +26,11 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateAdaptiveQuizOutputSchema},
   prompt: `You are an expert educator who creates quizzes to test a user's knowledge on a given topic.
 
-Your task is to generate a quiz with 5 questions based on the topic and difficulty level provided. The difficulty levels correspond to Bloom's Taxonomy, which measures cognitive depth.
+Your task is to generate a quiz with a specific number of questions based on the topic and difficulty level provided. The difficulty levels correspond to Bloom's Taxonomy, which measures cognitive depth.
 
 Topic: {{{topic}}}
 Difficulty Level: {{{difficulty}}}
+Number of Questions: {{{numQuestions}}}
 
 **Difficulty Level Guidelines:**
 - **Beginner (Recall):** Focus on direct questions, definitions, terms, and simple multiple-choice questions. (e.g., "What does API stand for?")
@@ -39,9 +40,10 @@ Difficulty Level: {{{difficulty}}}
 
 **Instructions:**
 1. Create a quiz with a suitable title that reflects the topic and difficulty.
-2. Generate exactly 5 questions.
-3. The questions should be a mix of types: multiple-choice ('mcq'), true/false ('true-false'), and short-answer ('short-answer'). Ensure there is at least one of each type.
-4. The questions must strictly match the requested difficulty level. For 'short-answer', provide a clear 'idealAnswer' for evaluation.
+2. Generate exactly {{{numQuestions}}} questions.
+3. The questions should be a mix of types: multiple-choice ('mcq'), true/false ('true-false'), and short-answer ('short-answer'). Ensure there is a variety.
+4. If the number of questions is high (e.g., >10), ensure you cover all core concepts of the topic.
+5. The questions must strictly match the requested difficulty level. For 'short-answer', provide a clear 'idealAnswer' for evaluation.
 
 Generate the quiz now.`,
 });

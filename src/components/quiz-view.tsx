@@ -97,7 +97,6 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
   const renderQuestionBody = () => {
       switch (currentQuestion.type) {
           case 'mcq':
-            const isMcqCorrect = isSubmitted && selectedAnswer === currentQuestion.correctAnswer;
             return (
                 <RadioGroup
                     onValueChange={(value) => setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
@@ -120,7 +119,6 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
                     </RadioGroup>
             )
           case 'true-false':
-            const isTfCorrect = isSubmitted && selectedAnswer === currentQuestion.correctAnswer;
             return (
                 <RadioGroup
                     onValueChange={(value) => setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: value === 'true' }))}
@@ -147,6 +145,8 @@ export function QuizView({ quiz, onCorrectAnswer, onQuizComplete }: QuizViewProp
                 />
             )
           default:
+              // This should not happen with the union type, but it's good practice
+              const exhaustiveCheck: never = currentQuestion;
               return null;
       }
   }

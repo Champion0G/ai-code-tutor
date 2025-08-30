@@ -34,12 +34,13 @@ export type AllQuestionType = z.infer<typeof AllQuestionSchemas>;
 export const GenerateAdaptiveQuizInputSchema = z.object({
   topic: z.string().describe("The topic the user wants to be tested on."),
   difficulty: QuizDifficultySchema.describe("The cognitive difficulty level based on Bloom's Taxonomy."),
+  numQuestions: z.number().min(5).max(20).default(5).describe("The number of questions to generate for the quiz."),
 });
 export type GenerateAdaptiveQuizInput = z.infer<typeof GenerateAdaptiveQuizInputSchema>;
 
 export const GenerateAdaptiveQuizOutputSchema = z.object({
     title: z.string().describe("A fitting title for the quiz, like 'Advanced Cybersecurity Challenge'."),
-    questions: z.array(AllQuestionSchemas).min(5).max(5).describe("An array of exactly 5 quiz questions of mixed types."),
+    questions: z.array(AllQuestionSchemas).describe("An array of quiz questions of mixed types."),
     difficulty: QuizDifficultySchema.describe("The difficulty level this quiz was generated for."),
 });
 export type GenerateAdaptiveQuizOutput = z.infer<typeof GenerateAdaptiveQuizOutputSchema>;

@@ -14,6 +14,8 @@ import type { GenerateAdaptiveQuizOutput, QuizDifficulty } from '@/models/adapti
 import { QuizView } from '@/components/quiz-view';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 
 const difficultyLevels: QuizDifficulty[] = [
     "Beginner (Recall)",
@@ -25,6 +27,7 @@ const difficultyLevels: QuizDifficulty[] = [
 function KnowledgeTesterView() {
   const [topic, setTopic] = useState('');
   const [currentDifficulty, setCurrentDifficulty] = useState<QuizDifficulty>("Beginner (Recall)");
+  const [numQuestions, setNumQuestions] = useState(5);
   const [quiz, setQuiz] = useState<GenerateAdaptiveQuizOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,10 +55,9 @@ function KnowledgeTesterView() {
     setCurrentDifficulty(difficulty);
 
     try {
-      const result = await generateAdaptiveQuizAction({ topic, difficulty });
+      const result = await generateAdaptiveQuizAction({ topic, difficulty, numQuestions });
       if (result.success && result.quiz) {
         setQuiz(result.quiz);
-        addXp(10);
         setQuizKey(prev => prev + 1); // Force re-mount of QuizView
       } else {
         throw new Error(result.message || "Failed to generate the test.");
@@ -68,14 +70,17 @@ function KnowledgeTesterView() {
     }
   };
 
-  const handleCorrectAnswer = () => {
-    addXp(25);
-    addBadge("Quiz_Whiz");
-  }
-
   const handleQuizCompletion = (finalScore: number, totalQuestions: number) => {
       setQuizScore({ score: finalScore, total: totalQuestions });
       const percentage = (finalScore / totalQuestions) * 100;
+      
+      let xpGained = 0;
+      if (percentage >= 50) xpGained += 20;
+      if (percentage >= 80) xpGained += 30;
+      if (percentage >= 95) xpGained += 50;
+
+      if(xpGained > 0) addXp(xpGained);
+
       if (percentage >= 90) addBadge("Expert_Learner");
   }
 
@@ -142,9 +147,9 @@ function KnowledgeTesterView() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={(e) => { e.preventDefault(); handleGenerateTest(currentDifficulty); }} className="space-y-4">
+                        <form onSubmit={(e) => { e.preventDefault(); handleGenerateTest(currentDifficulty); }} className="space-y-6">
                             <div className="space-y-2">
-                                <label htmlFor="topic-input" className="text-sm font-medium">Topic</label>
+                                <Label htmlFor="topic-input">Topic</Label>
                                 <Input
                                 id="topic-input"
                                 placeholder="e.g., 'JavaScript Promises', 'Machine Learning', 'Database Design'"
@@ -154,7 +159,7 @@ function KnowledgeTesterView() {
                                 />
                             </div>
                              <div className="space-y-2">
-                                <label htmlFor="difficulty-select" className="text-sm font-medium">Difficulty Level</label>
+                                <Label htmlFor="difficulty-select">Difficulty Level</Label>
                                 <Select onValueChange={(value: QuizDifficulty) => setCurrentDifficulty(value)} defaultValue={currentDifficulty} disabled={isLoading}>
                                     <SelectTrigger id="difficulty-select">
                                         <SelectValue placeholder="Select a difficulty" />
@@ -165,6 +170,16 @@ function KnowledgeTesterView() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                            </div>
+                            <div className="space-y-3">
+                                <Label htmlFor="num-questions-slider">Number of Questions: {numQuestions}</Label>
+                                <Slider 
+                                    id="num-questions-slider"
+                                    min={5} max={20} step={1}
+                                    value={[numQuestions]}
+                                    onValueChange={(value) => setNumQuestions(value[0])}
+                                    disabled={isLoading}
+                                />
                             </div>
                             <Button type="submit" variant="success" className='w-full' size="lg" disabled={isLoading || !topic}>
                                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2 h-4 w-4" />}
@@ -228,7 +243,7 @@ function KnowledgeTesterView() {
             <QuizView
                 key={quizKey}
                 quiz={quiz}
-                onCorrectAnswer={handleCorrectAnswer}
+                onCorrectAnswer={() => {}}
                 onQuizComplete={handleQuizCompletion}
             />
           )}
