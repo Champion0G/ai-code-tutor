@@ -3,12 +3,32 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { safeError } from '@/lib/safe-error';
 import { User } from '@/models/user';
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
 
-// In a real application, this endpoint should be protected by authentication and authorization
-// to ensure only administrators can access it.
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+const ADMIN_EMAIL = "techchampion8@gmail.com";
 
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+        return NextResponse.json({ success: false, message: 'Authentication required.' }, { status: 401 });
+    }
+
+    let decoded;
+    try {
+        decoded = await jwtVerify(token, JWT_SECRET);
+    } catch (err) {
+        return NextResponse.json({ success: false, message: 'Invalid token.' }, { status: 401 });
+    }
+
+    if (decoded.payload.email !== ADMIN_EMAIL) {
+        return NextResponse.json({ success: false, message: 'Access denied. You are not authorized to view this page.' }, { status: 403 });
+    }
+
     const client = await clientPromise;
     const db = client.db("ai-code-tutor");
     const usersCollection = db.collection<User>('users');
