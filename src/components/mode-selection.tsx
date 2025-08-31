@@ -5,14 +5,10 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LexerIcon } from './icons';
-import { FileText, BookOpen, LifeBuoy, BrainCircuit, TestTube, ShieldCheck } from 'lucide-react';
+import { FileText, BookOpen, LifeBuoy, BrainCircuit, TestTube } from 'lucide-react';
 import { Header } from './header';
-import { useGamification } from '@/contexts/gamification-context';
-
 
 export function ModeSelection() {
-  const { userRole } = useGamification();
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header showSidebarTrigger={false} />
@@ -138,15 +134,6 @@ export function ModeSelection() {
                     <LifeBuoy className="h-4 w-4" />
                     Contact Support
                 </Link>
-                {userRole === 'admin' && (
-                    <>
-                        <span className="text-muted-foreground">|</span>
-                        <Link href="/admin" className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                            <ShieldCheck className="h-4 w-4" />
-                            Admin Panel
-                        </Link>
-                    </>
-                )}
             </div>
         </div>
       </main>

@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
     }
     
-    const token = await new SignJWT({ userId: user._id, email: user.email, role: user.role })
+    const token = await new SignJWT({ userId: user._id, email: user.email })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('24h')

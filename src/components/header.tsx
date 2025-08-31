@@ -14,7 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
-import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot, Coins, Infinity, TestTube, ShieldCheck } from "lucide-react";
+import { BrainCircuit, HomeIcon, User, LogIn, LogOut, UserPlus, Menu, FileText, BookOpen, Info, LifeBuoy, Bot, Coins, Infinity, TestTube } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Separator } from "./ui/separator";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 function MainNav({ closeSidebar }: { closeSidebar?: () => void }) {
-    const { email, name, resetContext, userRole } = useGamification();
+    const { email, name, resetContext } = useGamification();
     const router = useRouter();
     const { toast } = useToast();
     const isLoggedIn = !!email;
@@ -88,12 +88,6 @@ function MainNav({ closeSidebar }: { closeSidebar?: () => void }) {
                         <User className="h-4 w-4" />
                         Profile
                     </button>
-                    {userRole === 'admin' && (
-                        <button onClick={() => handleLinkClick('/admin')} className={cn(navLinkClasses)}>
-                           <ShieldCheck className="h-4 w-4" />
-                            Admin Panel
-                        </button>
-                    )}
                     <Separator className="my-2" />
                      <h3 className="px-3 text-sm font-semibold text-muted-foreground/80">Other</h3>
                      <button onClick={() => handleLinkClick('/about')} className={cn(navLinkClasses)}>
