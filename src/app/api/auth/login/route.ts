@@ -1,7 +1,6 @@
 
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { compare } from 'bcryptjs';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 import { safeError } from '@/lib/safe-error';
@@ -33,7 +32,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
     }
 
-    const isPasswordValid = await compare(password, user.password);
+    const isPasswordValid = password === user.password;
 
     if (!isPasswordValid) {
       return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });

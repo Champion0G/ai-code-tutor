@@ -1,7 +1,6 @@
 
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { hash } from 'bcryptjs';
 import { ObjectId } from 'mongodb';
 import { safeError } from '@/lib/safe-error';
 
@@ -28,13 +27,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Password reset token is invalid or has expired.' }, { status: 400 });
     }
 
-    const hashedPassword = await hash(password, 10);
-
     await db.collection('users').updateOne(
       { _id: new ObjectId(user._id) },
       {
         $set: {
-          password: hashedPassword,
+          password: password,
         },
         $unset: {
           resetPasswordToken: "",

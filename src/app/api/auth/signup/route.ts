@@ -1,7 +1,6 @@
 
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { hash } from 'bcryptjs';
 import { safeError } from '@/lib/safe-error';
 
 export async function POST(req: Request) {
@@ -37,21 +36,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: 'Error checking for existing user.', error: safe.message }, { status: 500 });
     }
 
-    let hashedPassword;
-    try {
-        hashedPassword = await hash(password, 10);
-    } catch (error) {
-        console.error("Failed to hash password", error);
-        const safe = safeError(error);
-        return NextResponse.json({ message: 'Error hashing password.', error: safe.message }, { status: 500 });
-    }
-
     try {
         const now = new Date();
         const result = await db.collection('users').insertOne({
             name,
             email,
-            password: hashedPassword,
+            password: password,
             level: 1,
             xp: 0,
             badges: [],
