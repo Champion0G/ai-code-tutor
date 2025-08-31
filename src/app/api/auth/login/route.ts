@@ -1,7 +1,6 @@
 
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { compare } from 'bcryptjs';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 import { safeError } from '@/lib/safe-error';
@@ -33,7 +32,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
     }
 
-    const isPasswordValid = await compare(password, user.password);
+    const isPasswordValid = password === user.password;
 
     if (!isPasswordValid) {
       return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
@@ -42,14 +41,14 @@ export async function POST(req: Request) {
     const token = await new SignJWT({ userId: user._id, email: user.email })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('1h')
+      .setExpirationTime('24h')
       .sign(JWT_SECRET);
 
     const cookieStore = await cookies();
     cookieStore.set('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60,
+        maxAge: 24 * 60 * 60, // 24 hours
         path: '/',
     });
 
